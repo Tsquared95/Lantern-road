@@ -692,6 +692,10 @@ body{height:100%;overflow:hidden;overscroll-behavior:none}
 .tipbtn.on{color:#f3e3c2;box-shadow:inset 0 0 0 1px #6f5418}
 .tipbtn:hover{box-shadow:inset 0 0 0 1.5px var(--gold)}
 @media (orientation:landscape) and (max-height:560px){.tipbtn{top:4px;font-size:10px;padding:3px 8px}}
+
+/* enemies stand apart from the hero */
+.battle2 .foes{justify-content:flex-end;padding-left:clamp(18px,9vw,140px);gap:2px}
+@media (max-aspect-ratio:4/5){.battle2 .hero{flex-basis:min(112px,20vh)}.battle2 .foe{flex-basis:min(116px,24vh)}}
 </style>
 
 
