@@ -934,17 +934,22 @@ const NODES={
  boss:{n:'Act boss',s:'王',x:'The guardian of this act.'},
 };
 const RELICS={
- wick:{n:'Spare wick',x:'Start each battle with a lit lantern.'},
- jar:{n:'Moth jar',x:'Start each battle with 3 paper moths.'},
+ wick:{n:'Spare wick',cls:'samurai',x:'Start each battle with a lit lantern.'},
+ jar:{n:'Moth jar',cls:'wizard',x:'Start each battle with 3 paper moths.'},
  whetstone:{n:'Whetstone',x:'Attacks deal 1 more damage.'},
  gourd:{n:'Sake gourd',x:'Heal 6 HP after each battle.'},
  sandals:{n:'Straw sandals',x:'Draw 2 extra cards on your first turn.'},
  omamori:{n:'Omamori',x:'Gain 12 max HP.',on(){G.run.maxHp+=12;G.run.hp+=12}},
  core:{n:'Lantern core',boss:1,x:'Gain 1 extra energy every turn.'},
- cocoon:{n:'Moth queen cocoon',boss:1,x:'Release a paper moth at the start of each turn.'},
+ cocoon:{n:'Moth queen cocoon',boss:1,cls:'wizard',x:'Release a paper moth at the start of each turn.'},
  blade:{n:'Ancestral blade',boss:1,x:'Start each battle with 2 strength.'},
- flame:{n:'Eternal flame',boss:1,x:'Lanterns grant 2 more block. Start battles with a lit lantern.'},
+ flame:{n:'Eternal flame',boss:1,cls:'samurai',x:'Lanterns grant 2 more block. Start battles with a lit lantern.'},
  kami:{n:'Mountain kami charm',boss:1,x:'Gain 20 max HP.',on(){G.run.maxHp+=20;G.run.hp+=20}},
+ circlet:{n:'Golden circlet',cls:'wukong',x:'Start each battle with 2 staff growth.'},
+ nimbus:{n:'Flying nimbus',boss:1,cls:'wukong',x:'Summon a monkey clone at the start of each turn.'},
+ furnace:{n:'Eight Trigrams furnace',boss:1,cls:'wukong',x:'Enemies take 3 damage each time they hit you.'},
+ pouch:{n:'Kunai pouch',cls:'ninja',x:'Start each battle with 2 Kunai in hand.'},
+ fang:{n:'Viper fang',boss:1,cls:'ninja',x:'Your attacks also apply 1 poison.'},
 };
 const PERKS={
  thick:{n:'Thick skin',x:'Gain 10 max HP.',on(){G.run.maxHp+=10;G.run.hp+=10}},
@@ -1177,8 +1182,9 @@ const alive=()=>C().enemies.filter(e=>e.hp>0);
 const bonus=()=>C().str+(has('whetstone')?1:0);
 function hurt(n){G.run.hp=Math.max(1,G.run.hp-n);if(G.screen==='combat'&&G.C&&tal('e2'))G.C.block+=3}
 function heal(n){G.run.hp=Math.min(G.run.maxHp,G.run.hp+n)}
-function randRelic(){const k=Object.keys(RELICS).filter(k=>!RELICS[k].boss&&!G.run.relics.includes(k));return k.length?pick(k):null}
-function bossRelics(){return shuffle(Object.keys(RELICS).filter(k=>RELICS[k].boss&&!G.run.relics.includes(k))).slice(0,3)}
+const relOk=k=>!RELICS[k].cls||!G.run||RELICS[k].cls===G.run.cls;
+function randRelic(){const k=Object.keys(RELICS).filter(k=>relOk(k)&&!RELICS[k].boss&&!G.run.relics.includes(k));return k.length?pick(k):null}
+function bossRelics(){return shuffle(Object.keys(RELICS).filter(k=>relOk(k)&&RELICS[k].boss&&!G.run.relics.includes(k))).slice(0,3)}
 const BOSSES=[['jorogumo','kitsune','yukionna'],['gashadokuro','nue','raijin'],['mukade','orochi','shuten']];
 const actBoss=a=>G.run&&G.run.bossPick?G.run.bossPick[a-1]:ACTS[a-1].boss;
 function bossInfo(){const f=FOES[actBoss(G.run.act)];return{n:f.n,s:f.s,x:'The guardian of this act. Defeat it for a boss relic, a rare card, and a full heal.'}}
@@ -1282,27 +1288,27 @@ function enter(t){
   if(t==='fight'||t==='elite'||t==='boss')return startCombat(t);
   if(t==='rest'){G.screen='rest';return render()}
   if(t==='shrine'){G.ev={i:R(EVENTS.length),result:null};G.screen='shrine';return render()}
-  if(t==='shop'){const m=disc(),rl=shuffle(Object.keys(RELICS).filter(k=>!RELICS[k].boss&&!has(k))).slice(0,2);
+  if(t==='shop'){const m=disc(),rl=shuffle(Object.keys(RELICS).filter(k=>relOk(k)&&!RELICS[k].boss&&!has(k))).slice(0,2);
     G.shop={say:pick(SAY.hi),cards:cardChoices(5).map(k=>({k,p:Math.round((RARE.includes(k)?80+R(21):45+R(26))*m),sold:0})),perks:perkChoices(3).map(k=>({k,p:Math.round((80+R(21))*m),sold:0})),relics:rl.map(k=>({k,p:Math.round((105+R(26))*m),sold:0})),removed:0,rc:Math.round(60*m),tea:0,tp:Math.round(30*m),items:[randItem(),randItem(),randItem()].map(k=>({k,p:Math.round((ITEMS[k].rare?75:32+R(24))*m),sold:0}))};G.screen='shop';return render()}
 }
 function startCombat(kind){
   const a=G.run.act,f=G.run.floor,keys=kind==='boss'?[actBoss(a)]:kind==='elite'?(a===3?pick([['oni'],['tengu'],['tengu','wisp'],['oni','tanuki']]):[pick(['oni','tengu'])]):fightGroup(f);
-  G.C={kind,enemies:keys.map(k=>mkFoe(k,Math.round(diff()*.8))),draw:shuffle([...G.run.deck]),hand:[],discard:[],exhaust:[],energy:3,emax:3+(has('core')?1:0),block:0,lanterns:(has('wick')?1:0)+(has('flame')?1:0)+(tal('s1')?1:0),lpow:2+(has('flame')?2:0)+(tal('s2')?1:0),moths:(has('jar')?3:0)+(tal('m1')?2:0),str:(has('blade')?2:0)+(tal('b3')?1:0),venom:0,clones:0,kunaiB:0,nextDraw:0,startBlock:(tal('w1')?6:0)+(tal('h1')?6:0)+(tal('g1')?6:0),staff:(tal('r1')?2:0)+(perk('band')?3:0),grow:0,monkeys:(tal('c1')?2:0)+(perk('troopp')?2:0),troop:0,counter:tal('g2')?2:0,mark:tal('h4')?1:0,tgt:0,turn:0,log:kind==='boss'?FOES[keys[0]].intro:'Something moves on the road ahead.'};
+  G.C={kind,enemies:keys.map(k=>mkFoe(k,Math.round(diff()*.8))),draw:shuffle([...G.run.deck]),hand:[],discard:[],exhaust:[],energy:3,emax:3+(has('core')?1:0),block:0,lanterns:(has('wick')?1:0)+(has('flame')?1:0)+(tal('s1')?1:0),lpow:2+(has('flame')?2:0)+(tal('s2')?1:0),moths:(has('jar')?3:0)+(tal('m1')?2:0),str:(has('blade')?2:0)+(tal('b3')?1:0),venom:0,clones:0,kunaiB:0,nextDraw:0,startBlock:(tal('w1')?6:0)+(tal('h1')?6:0)+(tal('g1')?6:0),staff:(tal('r1')?2:0)+(perk('band')?3:0)+(has('circlet')?2:0),grow:0,monkeys:(tal('c1')?2:0)+(perk('troopp')?2:0),troop:0,counter:(tal('g2')?2:0)+(has('furnace')?3:0),mark:tal('h4')?1:0,tgt:0,turn:0,log:kind==='boss'?FOES[keys[0]].intro:'Something moves on the road ahead.'};
   G.C.enemies.forEach(e=>{const m=(kind==='elite'&&asc(1)?1.2:1)*(kind==='fight'&&asc(2)?1.1:1)*(e.boss&&asc(7)?1.2:1);if(m>1){e.hp=e.max=e.shown=Math.round(e.hp*m)}
     if(asc(4))e.str+=1;if(e.boss&&asc(7))e.str+=2;if(kind!=='fight'&&asc(10)){e.block=12;e.str+=1}});
   G.C.enemies.forEach(e=>{if(tal('w2'))e.str-=1;if(tal('v1'))e.poison=3});
-  {const c=G.C;if(perk('lantern'))c.lanterns++;if(perk('swarmp'))c.moths+=3;if(perk('coat'))c.venom++;if(perk('hardened'))c.startBlock+=6;}
+  {const c=G.C;if(perk('lantern'))c.lanterns++;if(perk('swarmp'))c.moths+=3;if(perk('coat'))c.venom++;if(has('fang'))c.venom++;if(perk('hardened'))c.startBlock+=6;}
   if(G.run.charm>0){G.C.startBlock+=8;G.run.charm--}
   G.C.intro=1;G.screen='combat';if(tal('t1'))aoe(4);startTurn();
 }
 function startTurn(){const c=C();c.turn++;c.emax=c.emax||3;c.firstHit=0;
-  if(has('cocoon'))c.moths++;if(tal('m3'))c.moths++;if(c.grow)c.staff=(c.staff||0)+c.grow;if(c.troop)c.monkeys=(c.monkeys||0)+c.troop;
+  if(has('cocoon'))c.moths++;if(tal('m3'))c.moths++;if(c.grow)c.staff=(c.staff||0)+c.grow;if(c.troop)c.monkeys=(c.monkeys||0)+c.troop;if(has('nimbus'))c.monkeys=(c.monkeys||0)+1;
   c.atkN=0;c.block=(tal('w4')||tal('g4')?Math.floor(c.block/2):0)+(perk('guarded')?Math.min(c.block,5):0)+c.lanterns*c.lpow+(c.turn===1?(c.startBlock||0):0);
   c.energy=c.emax+(c.turn===1&&(tal('e3')||tal('t3')||tal('h3')||tal('r3'))?1:0)+(c.turn===1&&perk('well')?1:0);if(c.turn%3===0){if(perk('fury'))c.str++;if(perk('surge'))c.energy++}c.clones=c.clones||0;
   if(tal('s4')&&c.lanterns>=3)alive().forEach(e=>dmgFoe(e,3));if(tal('t4'))alive().forEach(e=>dmgFoe(e,2));
   if(!alive().length)return finishWin();
   c.dealing=1;c.dealFx=1;draw(5+(c.turn===1&&has('sandals')?2:0)+(c.turn===1&&tal('b2')?1:0)+(tal('w3')?1:0)+(c.nextDraw||0));c.nextDraw=0;
-  if(c.turn===1&&tal('k1'))addHand('kunai',2);if(c.clones)addHand('kunai',c.clones);if(tal('k4'))addHand('kunai',1);render()}
+  if(c.turn===1&&tal('k1'))addHand('kunai',2);if(c.turn===1&&has('pouch'))addHand('kunai',2);if(c.clones)addHand('kunai',c.clones);if(tal('k4'))addHand('kunai',1);render()}
 const RANGED=['kunai','dart','needle','barrage'],LIGHTNING=['bolt','thunder','chain','tempest','static'];
 function play(i){
   const c=C(),id=c.hand[i],d=CARDS[id];if(G.busy||!d||d.c>c.energy||Date.now()<(G.lockUntil||0))return;
