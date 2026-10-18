@@ -696,6 +696,15 @@ body{height:100%;overflow:hidden;overscroll-behavior:none}
 /* enemies stand apart from the hero */
 .battle2 .foes{justify-content:flex-end;padding-left:clamp(18px,9vw,140px);gap:2px}
 @media (max-aspect-ratio:4/5){.battle2 .hero{flex-basis:min(112px,20vh)}.battle2 .foe{flex-basis:min(116px,24vh)}}
+
+/* block shield next to HP bars */
+.hpwrap{position:relative;display:block;width:82%;margin-left:8%}
+.battle2 .hpwrap .hpbar{width:100%;display:block}
+.blk2{left:-16px;width:30px;height:32px;margin-top:-16px;z-index:3;font-size:13px;filter:drop-shadow(0 2px 3px #000a)}
+.hpbar.shielded{box-shadow:0 0 0 2px #7a84ee,0 0 10px #6a74e088}
+.hpbar.shielded .cur{background:linear-gradient(#d4504a,#a8302a)}
+.hpbar.shielded .hpn{color:#e6e9ff}
+@media (orientation:landscape) and (max-height:560px){.blk2{width:24px;height:26px;margin-top:-13px;left:-13px;font-size:11px}}
 </style>
 
 
@@ -1777,7 +1786,7 @@ if(typeof window!=='undefined'&&window.addEventListener&&typeof document.element
 }
 function heroHTML(c){const hs=Math.max(0,(c.hshown??G.run.hp)/G.run.maxHp*100);c.hshown=G.run.hp;
   const m=Math.min(c.moths,8),l=Math.min(c.lanterns,5);
-  return `<div class="hero ${c.anim||''}"><div class="fig">${l?`<div class="lamps" aria-hidden="true">${lampSVG.repeat(l)}</div>`:''}<svg viewBox="0 -8 100 116" role="img" aria-label="${CLS().hero}, ${CLS().sub.toLowerCase()}">${HEROSVG[G.run.cls||'samurai']()}</svg>${m?`<div class="orbit" aria-hidden="true">${Array.from({length:m},(_,i)=>`<span style="--a:${i*360/m}deg">${mothSVG}</span>`).join('')}</div>`:''}</div><span class="nm">${CLS().hero}</span><span class="hpbar" data-hp="${Math.max(0,G.run.hp/G.run.maxHp*100)}%"><i class="lag" style="width:${hs}%"></i><i class="cur" style="width:${hs}%"></i><em class="hpn">${Math.max(0,G.run.hp)}/${G.run.maxHp}</em>${c.block?`<span class="blk2" title="Block">${c.block}</span>`:''}</span>
+  return `<div class="hero ${c.anim||''}"><div class="fig">${l?`<div class="lamps" aria-hidden="true">${lampSVG.repeat(l)}</div>`:''}<svg viewBox="0 -8 100 116" role="img" aria-label="${CLS().hero}, ${CLS().sub.toLowerCase()}">${HEROSVG[G.run.cls||'samurai']()}</svg>${m?`<div class="orbit" aria-hidden="true">${Array.from({length:m},(_,i)=>`<span style="--a:${i*360/m}deg">${mothSVG}</span>`).join('')}</div>`:''}</div><span class="nm">${CLS().hero}</span><span class="hpwrap">${c.block?`<span class="blk2" title="Block: absorbs damage until your next turn">${c.block}</span>`:''}<span class="hpbar ${c.block?'shielded':''}" data-hp="${Math.max(0,G.run.hp/G.run.maxHp*100)}%"><i class="lag" style="width:${hs}%"></i><i class="cur" style="width:${hs}%"></i><em class="hpn">${Math.max(0,G.run.hp)}/${G.run.maxHp}</em></span></span>
   <button class="hstat" data-a="status" aria-label="Your status effects">${c.lanterns?`<i title="Lanterns: +${c.lpow} block each turn">灯${c.lanterns}</i>`:''}${c.moths?`<i title="Paper moths">蛾${c.moths}</i>`:''}${c.str?`<i class="r" title="Strength">力${c.str}</i>`:''}${c.venom?`<i class="g" title="Venom">毒${c.venom}</i>`:''}${c.clones?`<i title="Shadow clones">影${c.clones}</i>`:''}<i class="q">?</i></button></div>`;
 }
 const unitSVG=k=>`<svg viewBox="0 -8 100 116" aria-hidden="true">${UNITS[k]}</svg>`;
@@ -1840,7 +1849,7 @@ function render(){
         return `<div class="foe dying ${e.boss?'boss':''}" data-fi="${i}" data-hp="0%" aria-hidden="true"><span class="intent" style="visibility:hidden">·</span><span class="unit">${unitSVG(e.key)}</span><span class="nm">${e.n}</span><span class="hpbar"><i class="lag" style="width:${pct(sh,e.max)}"></i><i class="cur" style="width:${pct(sh,e.max)}"></i></span><span class="nums"><span>0/${e.max}</span></span></div>`}
       e.shown=e.hp;const it=intent(e);let cls='buf',lab='';
       if(it.a){cls='atk';lab=`Attack ${Math.max(0,it.a+e.str)}${it.k?' ×'+it.k:''}${it.d?' · Guard':''}${it.b?' · Rally':''}`}else if(it.d){cls='def';lab=`Guard ${it.d}${it.b?' · Rally':''}`}else{lab=`Rally +${it.b}`}
-      return `<button class="foe ${i===c.tgt?'sel':''} ${e.boss?'boss':''}" data-a="tgt" data-v="${i}" data-fi="${i}" data-hp="${pct(e.hp,e.max)}" aria-label="Target ${e.n}"><span class="intent ${cls}">${lab}</span><span class="unit" style="animation-delay:-${i*1.1}s">${unitSVG(e.key)}</span><span class="nm">${e.n}</span><span class="hpbar"><i class="lag" style="width:${pct(sh,e.max)}"></i><i class="cur" style="width:${pct(sh,e.max)}"></i><em class="hpn">${e.hp}/${e.max}</em></span><span class="nums">${e.block?`<span class="blk">◆ ${e.block}</span>`:''}${e.str?`<span style="color:var(--ember)">${e.str>0?'+':''}${e.str} str</span>`:''}${e.poison?`<span style="color:var(--jade)">Poison ${e.poison}</span>`:''}</span></button>`}).join('');
+      return `<button class="foe ${i===c.tgt?'sel':''} ${e.boss?'boss':''}" data-a="tgt" data-v="${i}" data-fi="${i}" data-hp="${pct(e.hp,e.max)}" aria-label="Target ${e.n}"><span class="intent ${cls}">${lab}</span><span class="unit" style="animation-delay:-${i*1.1}s">${unitSVG(e.key)}</span><span class="nm">${e.n}</span><span class="hpwrap">${e.block?`<span class="blk2" title="Block">${e.block}</span>`:''}<span class="hpbar ${e.block?'shielded':''}"><i class="lag" style="width:${pct(sh,e.max)}"></i><i class="cur" style="width:${pct(sh,e.max)}"></i><em class="hpn">${e.hp}/${e.max}</em></span></span><span class="nums">${e.str?`<span style="color:var(--ember)">${e.str>0?'+':''}${e.str} str</span>`:''}${e.poison?`<span style="color:var(--jade)">Poison ${e.poison}</span>`:''}</span></button>`}).join('');
     c.enemies.forEach(e=>e.flash=0);
     const tip=G.run.act===1&&G.run.floor<=2&&c.turn<=1&&!G.busy;
     h=`<div class="battle2"><div class="stage">${battleBG(G.run.act,c.kind)}${heroHTML(c)}<div class="foes">${foes}</div></div>
