@@ -167,7 +167,7 @@ p{margin:0}
 .stage .foe .nm,.stage .foe .nums,.stage .hero .nm{text-shadow:0 1px 3px #000,0 0 8px #000}
 .stage .foe .nm{color:#d8d3e3}
 .pick{gap:12px}
-.clsrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.clsrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .ctab{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--paper);border:1.5px solid var(--line2);border-radius:12px;padding:8px 4px 8px}
 .ctab .pic{width:54px;line-height:0}.ctab .pic svg{width:100%;height:auto;overflow:visible}
 .ctab b{font-size:14px}.ctab small{font-size:11px;color:var(--dim)}
@@ -182,6 +182,12 @@ p{margin:0}
 .tp{font-size:11px;color:var(--dim);white-space:nowrap}
 .pickbar{position:sticky;bottom:0;display:flex;gap:8px;background:var(--ink);padding-block:8px}
 .pickbar .main{flex:1}
+.monks{position:absolute;right:62%;bottom:0;display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;width:92px;gap:0;pointer-events:none;z-index:0}
+.hero .fig .monks svg{width:26px!important;height:auto!important;flex:0 0 auto;animation:hop .9s ease-in-out infinite}
+.monks svg:nth-child(2n){animation-delay:-.45s}.monks svg:nth-child(3n){animation-delay:-.2s}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.tk.wukong{animation-delay:.45s}
+@media (orientation:landscape) and (max-height:560px){.hero .fig .monks svg{width:22px!important}}
 .ascrow{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #ffffff1f;border-radius:10px;background:#14151d}
 .ascrow.on{border-color:#c0392b;background:linear-gradient(90deg,#2a1214,#14151d)}
 .ascrow .ab{flex:0 0 34px;height:34px;border-radius:8px;border:1px solid #ffffff2a;background:#1d1f2a;color:var(--washi);font-size:20px;line-height:1;cursor:pointer}
@@ -804,6 +810,28 @@ const CARDS={
  venom:{n:'Venom edge',c:1,t:'pow',x:'Your attacks also apply 1 poison.',p(){C().venom++}},
  backflip:{n:'Backflip',c:1,t:'skl',x:'Gain 5 block. Draw 2.',p(){C().block+=5;draw(2)}},
  storm:{n:'Kunai storm',c:2,t:'skl',ex:1,x:'Add 5 Kunai to your hand. Exhaust.',p(){addHand('kunai',5)}},
+ staff:{n:'Staff strike',c:1,t:'atk',x:'Deal 6 damage, plus your staff growth.',p(){sHit(6)}},
+ cloudstep:{n:'Cloud step',c:1,t:'skl',x:'Gain 5 block.',p(){C().block+=5}},
+ hairclone:{n:'Hair clones',c:1,t:'skl',x:'Summon 2 monkey clones.',p(){C().monkeys+=2}},
+ grow:{n:'Grow, Ruyi!',c:1,t:'skl',x:'Your staff grows by 3. Draw 1.',p(){C().staff+=3;draw(1)}},
+ spin:{n:'Whirling staff',c:1,t:'atk',x:'Deal 3 damage, plus your staff growth, twice.',p(){sHit(3);sHit(3)}},
+ sweep:{n:'Pillar sweep',c:2,t:'atk',x:'Deal 7 damage, plus your staff growth, to every enemy.',p(){const c=C();aoe(7+c.staff);if(tal('r4'))c.staff++}},
+ pillar:{n:'Sky pillar',c:2,t:'atk',x:'Your staff grows by 2. Deal 12 damage, plus your staff growth.',p(){C().staff+=2;sHit(12)}},
+ ironpole:{n:'Iron pole guard',c:1,t:'skl',x:'Gain 5 block, plus your staff growth.',p(){const c=C();c.block+=5+c.staff}},
+ ruyi:{n:'Ruyi Jingu Bang',c:1,t:'pow',x:'At the start of each turn, your staff grows by 2.',p(){C().grow=(C().grow||0)+2}},
+ pluck:{n:'Pluck a hair',c:0,t:'skl',x:'Summon 1 monkey clone. Draw 1.',p(){C().monkeys++;draw(1)}},
+ horde:{n:'Monkey horde',c:2,t:'skl',x:'Summon 4 monkey clones.',p(){C().monkeys+=4}},
+ mountain:{n:'Flower Fruit Mountain',c:2,t:'pow',x:'Summon 1 monkey clone at the start of each turn.',p(){C().troop=(C().troop||0)+1}},
+ mob:{n:'Mob strike',c:1,t:'atk',x:'Deal 2 damage per monkey clone, plus 3.',p(){hit(3+2*C().monkeys)}},
+ decoy:{n:'Decoy clones',c:1,t:'skl',x:'Gain 3 block, plus 2 per monkey clone.',p(){const c=C();c.block+=3+2*c.monkeys}},
+ warcry:{n:'Monkey war cry',c:1,t:'atk',x:'Deal 5 damage to every enemy. Summon 1 monkey clone.',p(){aoe(5);C().monkeys++}},
+ goldbody:{n:'Golden body',c:1,t:'pow',x:'Enemies take 3 damage each time they hit you.',p(){C().counter+=3}},
+ stonehide:{n:'Stone-born hide',c:2,t:'skl',x:'Gain 12 block. Enemies take 1 more damage when they hit you.',p(){const c=C();c.block+=12;c.counter++}},
+ vajra:{n:'Vajra palm',c:1,t:'atk',x:'Deal 5 damage. Gain 5 block.',p(){hit(5);C().block+=5}},
+ grin:{n:'Mocking grin',c:1,t:'skl',x:'Gain 7 block. The target loses 1 strength.',p(){C().block+=7;const e=target();if(e)e.str-=1}},
+ havoc:{n:'Havoc in Heaven',c:2,t:'atk',x:'Deal damage equal to your block.',p(){hit(C().block)}},
+ peach:{n:'Peach of immortality',c:1,t:'skl',ex:1,x:'Heal 8 HP. Exhaust.',p(){heal(8)}},
+ somersault:{n:'Cloud somersault',c:0,t:'skl',ex:1,x:'Gain 1 energy. Draw 1. Exhaust.',p(){C().energy++;draw(1)}},
  catalyst:{n:'Catalyst',c:1,t:'skl',ex:1,x:"Double the target's poison. Exhaust.",p(){const e=target();if(e)e.poison=(e.poison||0)*2}},
 };
 const CLASSES={
@@ -819,6 +847,9 @@ const CLASSES={
   start:[...Array(5).fill('shadow'),...Array(4).fill('evade'),'volley'],
   pool:['dart','cloud','smokeb','flurry','assassin','clone','venom','backflip','storm','catalyst','volley','iai'],
   help:()=>'Poison: deals its amount at the start of the enemy turn, then drops by 1. Kunai cost 0.'},
+ wukong:{n:'Wukong',hero:'Sun Wukong',sub:'The Monkey King',hp:66,x:'A growing iron staff, an army of hair clones, and a golden body that hurts whoever strikes it.',
+  start:[...Array(5).fill('staff'),...Array(4).fill('cloudstep'),'hairclone'],pool:[],
+  help:c=>`Staff +${c.staff||0} damage. Clones: ${c.monkeys||0}. Counter: ${c.counter||0}.`},
 };
 const BUILDS={
  samurai:{
@@ -833,6 +864,10 @@ const BUILDS={
   venom:{n:'Venom',x:'Stack poison and let it do the work while you defend.',sig:['dart','needle'],pool:['dart','cloud','venom','catalyst','needle','assassin','smokeb','backflip']},
   kunai:{n:'Thousand Kunai',x:'Flood your hand with free Kunai and make each one hit harder.',sig:['volley','sharpkunai'],pool:['volley','storm','clone','sharpkunai','barrage','flurry','iai','backflip']},
   shadow:{n:'Shadow Dancer',x:'Vanish, dodge, and draw extra cards before striking.',sig:['smokeb','shadowstep'],pool:['smokeb','backflip','shadowstep','vanish','flurry','iai','assassin','barrage']}},
+ wukong:{
+  ruyi:{n:'Ruyi Staff',x:'Grow your iron staff every turn until each swing hits like a mountain.',sig:['grow','spin'],pool:['grow','spin','sweep','pillar','ironpole','ruyi','somersault','vajra']},
+  army:{n:'Monkey Army',x:'Pluck hairs to summon clones that strike at the end of every turn.',sig:['pluck','decoy'],pool:['pluck','horde','mountain','mob','decoy','warcry','hairclone','somersault']},
+  diamond:{n:'Golden Body',x:'Stack block and counter damage. Enemies hurt themselves hitting you.',sig:['goldbody','stonehide'],pool:['goldbody','stonehide','vajra','grin','havoc','peach','ironpole','cloudstep']}},
 };
 for(const k in CLASSES){CLASSES[k].builds=BUILDS[k];CLASSES[k].pool=[...new Set(Object.values(BUILDS[k]).flatMap(b=>b.pool))]}
 const TALENTS={
@@ -845,11 +880,15 @@ const TALENTS={
  ninja:{venom:[['v1','Tainted air','Enemies start battles with 3 poison.'],['v2','Virulent','Poison you apply is 1 higher.'],['v3','Necrosis','Poison deals 2 more damage each tick.'],['v4','Plague','When a poisoned enemy dies, its poison spreads to the others.']],
   kunai:[['k1','Ready blades','Start each battle with 2 Kunai in hand.'],['k2','Weighted tips','Kunai deal 2 more damage.'],['k3','Deflect','Each Kunai also gives 1 block.'],['k4','Endless supply','Add a Kunai to your hand every turn.']],
   shadow:[['h1','Hidden','Start each battle with 6 block.'],['h2','Evasive','Gain 2 block whenever you play a skill.'],['h3','Shadow form','Gain 1 extra energy on your first turn.'],['h4','Death mark','Your first hit each battle deals triple damage.']]},
+ wukong:{ruyi:[['r1','Golden bands','Start each battle with 2 staff growth.'],['r2','Heavy iron','Staff attacks deal 2 more damage.'],['r3','Clever monkey','Gain 1 extra energy on your first turn.'],['r4','Endless growth','Your staff grows by 1 each time you hit with it.']],
+  army:[['c1','Loyal troop','Start each battle with 2 monkey clones.'],['c2','Sharp claws','Monkey clones deal 4 damage instead of 3.'],['c3','Tough fur','Clones are no longer lost when you take damage.'],['c4','Monkey kingdom','Monkey clones strike every enemy.']],
+  diamond:[['g1','Stone born','Start each battle with 6 block.'],['g2','Thorny fur','Enemies take 2 damage each time they hit you.'],['g3','Immortal','Start each run with 10 more max HP.'],['g4','Indestructible','Keep half your block between turns.']]},
 };
 const TCOST=[1,2,3,5];
-let META={pts:0,t:{samurai:[],wizard:[],ninja:[]}};
+let META={pts:0,t:{samurai:[],wizard:[],ninja:[],wukong:[]}};
 try{const m=JSON.parse(ls('lr-meta')||'null');if(m&&m.t)META=Object.assign(META,m)}catch(e){}
-META.asc=Object.assign({samurai:0,wizard:0,ninja:0},META.asc||{});
+for(const k in CLASSES)META.t[k]=META.t[k]||[];
+META.asc=Object.assign({samurai:0,wizard:0,ninja:0,wukong:0},META.asc||{});
 const saveMeta=()=>ls('lr-meta',JSON.stringify(META));
 const ASC_MAX=10,ASC=[null,
  'Elites have 20% more HP.',
@@ -927,6 +966,8 @@ const PERKS={
  well:{n:'Mana well',cls:'wizard',x:'Gain 1 extra energy on your first turn.'},
  coat:{n:'Toxic coating',cls:'ninja',x:'Your attacks apply 1 poison.'},
  veilp:{n:'Shadow veil',cls:'ninja',x:'Gain 3 block whenever you play a 0-cost card.'},
+ band:{n:'Golden headband',cls:'wukong',x:'Start each battle with 3 staff growth.'},
+ troopp:{n:'Monkey trick',cls:'wukong',x:'Start each battle with 2 monkey clones.'},
 };
 const perk=k=>!!(G.run&&G.run.perks&&G.run.perks.includes(k));
 const SAY={hi:['Welcome, traveler! Coin buys courage.','Ah, a customer! Everything here is road-tested.','Fresh wares from three provinces. Have a look.','Mind the moths. They chew the merchandise.'],
@@ -1154,9 +1195,10 @@ function onDeath(e){if(perk('soul'))heal(4);if(tal('v4')&&e.poison>0)G.C.enemies
 function target(){const c=C();let e=c.enemies[c.tgt];if(!e||e.hp<=0){c.tgt=c.enemies.findIndex(x=>x.hp>0);e=c.enemies[c.tgt]}return e&&e.hp>0?e:null}
 function dmgFoe(e,d){if(e.hp<=0)return;const a=Math.min(e.block,d);e.block-=a;e.hp=Math.max(0,e.hp-(d-a));e.flash=1;const i=G.C.enemies.indexOf(e);fxPush({t:'hit',i,n:d-a,b:a});if(e.hp<=0){e.dying=1;fxPush({t:'die',i});onDeath(e)}}
 function hit(base){const e=target(),c=C();if(!e)return;let d=base+bonus()+(tal('b1')?1:0);if(tal('b4')&&!c.firstHit)d+=5;c.firstHit=1;if(c.combo)d+=5;if(perk('exec')&&e.hp<e.max/2)d+=4;if(perk('first')&&!c.fsUsed){d+=6;c.fsUsed=1}if(c.mark){d*=3;c.mark=0}dmgFoe(e,d);if(c.venom)poison(e,c.venom)}
+function sHit(b){const c=C();hit(b+(c.staff||0)+(tal('r2')?2:0));if(tal('r4'))c.staff++}
 function draw(n){const c=C();for(let i=0;i<n;i++){if(!c.draw.length){if(!c.discard.length)break;c.draw=shuffle(c.discard);c.discard=[]}if(c.hand.length>=10)break;c.hand.push(c.draw.pop())}}
 
-function newRun(cls,build,lv){const k=CLASSES[cls];lv=Math.max(0,Math.min(lv||0,META.asc[cls]||0,ASC_MAX));G.run={cls,build,asc:lv,hp:k.hp,maxHp:k.hp,gold:lv>=3?15:40,deck:[...k.start,...k.builds[build].sig],relics:[],perks:[],items:['tea'],act:1,floor:0,elites:0,bosses:0,bossPick:BOSSES.map(p=>pick(p)),charm:0};if(tal('s3')){G.run.maxHp+=8;G.run.hp+=8}if(lv>=8){G.run.maxHp=Math.round(G.run.maxHp*.9);G.run.hp=G.run.maxHp}genMap();G.C=null;startBoon()}
+function newRun(cls,build,lv){G.busy=false;G.lockUntil=0;const k=CLASSES[cls];lv=Math.max(0,Math.min(lv||0,META.asc[cls]||0,ASC_MAX));G.run={cls,build,asc:lv,hp:k.hp,maxHp:k.hp,gold:lv>=3?15:40,deck:[...k.start,...k.builds[build].sig],relics:[],perks:[],items:['tea'],act:1,floor:0,elites:0,bosses:0,bossPick:BOSSES.map(p=>pick(p)),charm:0};if(tal('s3')){G.run.maxHp+=8;G.run.hp+=8}if(tal('g3')){G.run.maxHp+=10;G.run.hp+=10}if(lv>=8){G.run.maxHp=Math.round(G.run.maxHp*.9);G.run.hp=G.run.maxHp}genMap();G.C=null;startBoon()}
 function advanceAct(){const r=G.run;r.act++;r.floor=0;r.hp=asc(9)?r.hp+Math.ceil((r.maxHp-r.hp)/2):r.maxHp;G.reward=null;genMap();startBoon()}
 function genChoices(f){
   if(f===FPA)return['boss'];if(f===1)return['fight'];if(f===FPA-1)return['rest','shop'];
@@ -1214,9 +1256,10 @@ function travel(key){const r=G.run;if(G.traveling||!availNodes().includes(key))r
 }
 const RX=19,RY=13;
 function riderSVG(cls){
-  const rb={samurai:'#2b3078',wizard:'#e9e4d6',ninja:'#262734'}[cls]||'#2b3078';
+  const rb={samurai:'#2b3078',wizard:'#e9e4d6',ninja:'#262734',wukong:'#b8322a'}[cls]||'#2b3078';
   const hat={samurai:'<path d="M-6.5 -30.5 L6.5 -30.5 L0 -36Z" fill="#c9a24a" stroke="#8a6a2a" stroke-width=".5"/><line x1="-2.5" y1="-22" x2="-9.5" y2="-29" stroke="#d9dde6" stroke-width="1.1"/>',
     wizard:'<path d="M-2.4 -31.5 Q-3 -38.5 1 -40.5 Q2 -36.5 2.5 -31.5Z" fill="#0f1016"/><line x1="-4" y1="-21" x2="-6" y2="-36" stroke="#b9a37a" stroke-width="1"/><path d="M-6 -36 l-2 2 l2 1 l-2 2" stroke="#efe8d6" stroke-width=".9" fill="none"/>',
+    wukong:'<circle cx="0" cy="-29.5" r="2.9" fill="#8a5a2e"/><circle cx=".9" cy="-29.2" r="1.7" fill="#e8c49a"/><path d="M-2.8 -31 Q0 -33 2.8 -31" stroke="#e8c25a" stroke-width="1" fill="none"/><path d="M-1 -32 Q-5 -38 -11 -38" stroke="#c4304a" stroke-width=".8" fill="none"/><path d="M-3 -18 Q-8 -16 -8 -22" stroke="#7a4a24" stroke-width="1" fill="none"/><line x1="-6" y1="-15" x2="12" y2="-32" stroke="#b8322a" stroke-width="1.3"/>',
     ninja:'<circle cx="0" cy="-29.5" r="3" fill="#1c1d26"/><rect x="-.6" y="-30.4" width="3.4" height="1.3" fill="#e8d6bc"/><path class="scf" d="M-2 -27.5 Q-8 -29 -13 -25.5" stroke="#8a3f86" stroke-width="1.7" fill="none" stroke-linecap="round"/>'}[cls]||'';
   return `<g class="flip"><g class="horse"><path class="tail" d="M-12 -16 Q-19 -14 -18 -5" stroke="#2a1a10" stroke-width="2.8" fill="none" stroke-linecap="round"/>
   <g class="lg lgB"><line x1="-8" y1="-11" x2="-9" y2="-.5" stroke="#4a2c1a" stroke-width="2.3" stroke-linecap="round"/></g><g class="lg lgA"><line x1="7" y1="-11" x2="8" y2="-.5" stroke="#4a2c1a" stroke-width="2.3" stroke-linecap="round"/></g>
@@ -1244,7 +1287,7 @@ function enter(t){
 }
 function startCombat(kind){
   const a=G.run.act,f=G.run.floor,keys=kind==='boss'?[actBoss(a)]:kind==='elite'?(a===3?pick([['oni'],['tengu'],['tengu','wisp'],['oni','tanuki']]):[pick(['oni','tengu'])]):fightGroup(f);
-  G.C={kind,enemies:keys.map(k=>mkFoe(k,Math.round(diff()*.8))),draw:shuffle([...G.run.deck]),hand:[],discard:[],exhaust:[],energy:3,emax:3+(has('core')?1:0),block:0,lanterns:(has('wick')?1:0)+(has('flame')?1:0)+(tal('s1')?1:0),lpow:2+(has('flame')?2:0)+(tal('s2')?1:0),moths:(has('jar')?3:0)+(tal('m1')?2:0),str:(has('blade')?2:0)+(tal('b3')?1:0),venom:0,clones:0,kunaiB:0,nextDraw:0,startBlock:(tal('w1')?6:0)+(tal('h1')?6:0),mark:tal('h4')?1:0,tgt:0,turn:0,log:kind==='boss'?FOES[keys[0]].intro:'Something moves on the road ahead.'};
+  G.C={kind,enemies:keys.map(k=>mkFoe(k,Math.round(diff()*.8))),draw:shuffle([...G.run.deck]),hand:[],discard:[],exhaust:[],energy:3,emax:3+(has('core')?1:0),block:0,lanterns:(has('wick')?1:0)+(has('flame')?1:0)+(tal('s1')?1:0),lpow:2+(has('flame')?2:0)+(tal('s2')?1:0),moths:(has('jar')?3:0)+(tal('m1')?2:0),str:(has('blade')?2:0)+(tal('b3')?1:0),venom:0,clones:0,kunaiB:0,nextDraw:0,startBlock:(tal('w1')?6:0)+(tal('h1')?6:0)+(tal('g1')?6:0),staff:(tal('r1')?2:0)+(perk('band')?3:0),grow:0,monkeys:(tal('c1')?2:0)+(perk('troopp')?2:0),troop:0,counter:tal('g2')?2:0,mark:tal('h4')?1:0,tgt:0,turn:0,log:kind==='boss'?FOES[keys[0]].intro:'Something moves on the road ahead.'};
   G.C.enemies.forEach(e=>{const m=(kind==='elite'&&asc(1)?1.2:1)*(kind==='fight'&&asc(2)?1.1:1)*(e.boss&&asc(7)?1.2:1);if(m>1){e.hp=e.max=e.shown=Math.round(e.hp*m)}
     if(asc(4))e.str+=1;if(e.boss&&asc(7))e.str+=2;if(kind!=='fight'&&asc(10)){e.block=12;e.str+=1}});
   G.C.enemies.forEach(e=>{if(tal('w2'))e.str-=1;if(tal('v1'))e.poison=3});
@@ -1253,9 +1296,9 @@ function startCombat(kind){
   G.C.intro=1;G.screen='combat';if(tal('t1'))aoe(4);startTurn();
 }
 function startTurn(){const c=C();c.turn++;c.emax=c.emax||3;c.firstHit=0;
-  if(has('cocoon'))c.moths++;if(tal('m3'))c.moths++;
-  c.atkN=0;c.block=(tal('w4')?Math.floor(c.block/2):0)+(perk('guarded')?Math.min(c.block,5):0)+c.lanterns*c.lpow+(c.turn===1?(c.startBlock||0):0);
-  c.energy=c.emax+(c.turn===1&&(tal('e3')||tal('t3')||tal('h3'))?1:0)+(c.turn===1&&perk('well')?1:0);if(c.turn%3===0){if(perk('fury'))c.str++;if(perk('surge'))c.energy++}c.clones=c.clones||0;
+  if(has('cocoon'))c.moths++;if(tal('m3'))c.moths++;if(c.grow)c.staff=(c.staff||0)+c.grow;if(c.troop)c.monkeys=(c.monkeys||0)+c.troop;
+  c.atkN=0;c.block=(tal('w4')||tal('g4')?Math.floor(c.block/2):0)+(perk('guarded')?Math.min(c.block,5):0)+c.lanterns*c.lpow+(c.turn===1?(c.startBlock||0):0);
+  c.energy=c.emax+(c.turn===1&&(tal('e3')||tal('t3')||tal('h3')||tal('r3'))?1:0)+(c.turn===1&&perk('well')?1:0);if(c.turn%3===0){if(perk('fury'))c.str++;if(perk('surge'))c.energy++}c.clones=c.clones||0;
   if(tal('s4')&&c.lanterns>=3)alive().forEach(e=>dmgFoe(e,3));if(tal('t4'))alive().forEach(e=>dmgFoe(e,2));
   if(!alive().length)return finishWin();
   c.dealing=1;c.dealFx=1;draw(5+(c.turn===1&&has('sandals')?2:0)+(c.turn===1&&tal('b2')?1:0)+(tal('w3')?1:0)+(c.nextDraw||0));c.nextDraw=0;
@@ -1274,7 +1317,8 @@ function checkWin(){if(alive().length)return false;finishWin();return true}
 function finishWin(){const c=C();if(!c||c.winning)return;c.winning=1;G.busy=true;render();sfx('victory',700);setTimeout(()=>{G.busy=false;if(G.C===c)winCombat()},1000)}
 function endTurn(){
   const c=C();if(G.busy)return;
-  if(c.moths){c.mothFx={n:c.moths};const per=tal('m2')?3:2,dmg=c.moths*per;if(tal('m4')){alive().forEach(e=>dmgFoe(e,dmg));c.log=`${c.moths} paper moths strike every enemy for ${dmg}.`}else{const e=target();if(e){dmgFoe(e,dmg);c.log=`${c.moths} paper moth${c.moths>1?'s':''} strike for ${dmg}.`}}c.moths--}
+  if(c.monkeys){const per=tal('c2')?4:3,dmg=c.monkeys*per;c.mothFx={n:c.monkeys,monk:1};if(tal('c4')){alive().forEach(e=>dmgFoe(e,dmg));c.log=`${c.monkeys} monkey clones strike every enemy for ${dmg}.`}else{const e=target();if(e){dmgFoe(e,dmg);c.log=`${c.monkeys} monkey clone${c.monkeys>1?'s':''} strike for ${dmg}.`}}}
+  if(c.moths){c.mothFx={n:c.moths+(c.monkeys||0),monk:c.mothFx&&c.mothFx.monk};const per=tal('m2')?3:2,dmg=c.moths*per;if(tal('m4')){alive().forEach(e=>dmgFoe(e,dmg));c.log=`${c.moths} paper moths strike every enemy for ${dmg}.`}else{const e=target();if(e){dmgFoe(e,dmg);c.log=`${c.moths} paper moth${c.moths>1?'s':''} strike for ${dmg}.`}}c.moths--}
   c.discard.push(...c.hand);c.hand=[];
   if(checkWin())return;
   G.busy=true;const mf=!!c.mothFx;render();setTimeout(enemyTurn,mf?950:420);
@@ -1289,7 +1333,7 @@ function enemyStep(){
   if(e.poison>0){const p=e.poison+(tal('v3')?2:0);fxPush({t:'ptick',i,n:p});e.hp=Math.max(0,e.hp-p);e.poison--;pd=300;
     if(e.hp<=0){e.poison++;onDeath(e);e.poison=0;e.dying=1;fxPush({t:'die',i});c.log=`${e.n} succumbs to poison.`;render();return setTimeout(enemyStep,850)}}
   e.block=0;const it=intent(e),hits=[];
-  if(it.a){for(let j=0;j<(it.k||1);j++){let d=Math.max(0,it.a+e.str);const a=Math.min(c.block,d);c.block-=a;d-=a;G.run.hp-=d;hits.push({d,b:a});if(perk('thorns')){dmgFoe(e,2);if(e.hp<=0)break}}}
+  if(it.a){for(let j=0;j<(it.k||1);j++){let d=Math.max(0,it.a+e.str);const a=Math.min(c.block,d);c.block-=a;d-=a;G.run.hp-=d;hits.push({d,b:a});if(d>0&&c.monkeys&&!tal('c3')){c.monkeys--;c.lostClone=1}if(perk('thorns')||c.counter){dmgFoe(e,(perk('thorns')?2:0)+(c.counter||0));if(e.hp<=0)break}}}
   if(it.d)e.block+=it.d;if(it.b)e.str+=it.b;
   const tot=hits.reduce((s,h)=>s+h.d,0),blk=hits.reduce((s,h)=>s+h.b,0);
   c.log=it.a?`${e.n} deals ${tot}${blk?` (${blk} blocked)`:''}.`:it.d?`${e.n} braces.`:`${e.n} grows stronger.`;
@@ -1312,14 +1356,14 @@ function winCombat(){G.pileOpen=null;G.statusOpen=0;
   let relic=null,perks=null;if(c.kind==='elite'){perks=perkChoices(3);if(Math.random()<.5){relic=randRelic();relic&&gainRelic(relic)}}
   G.reward={gold,relic,perks,perk:null,cards:cardChoices(3),item:c.kind==='elite'||Math.random()<.45?randItem():null};G.C=null;G.screen='reward';render();
 }
-function endRun(won){const f=won?FPA*3+1:diff(),r=G.run,lv=r.asc||0;r.earned=Math.round((diff()+3*(r.elites||0)+8*(r.bosses||0)+(won?10:0))*(1+lv*.1));if(won&&lv>=(META.asc[r.cls]||0)&&lv<ASC_MAX){META.asc[r.cls]=lv+1;r.ascUp=lv+1}META.pts+=r.earned;saveMeta();if(f>G.best){G.best=f;ls('lr-best',String(f))}G.screen=won?'win':'over';G.C=null;ls('lr-run',null);render()}
+function endRun(won){G.busy=false;G.lockUntil=0;const f=won?FPA*3+1:diff(),r=G.run,lv=r.asc||0;r.earned=Math.round((diff()+3*(r.elites||0)+8*(r.bosses||0)+(won?10:0))*(1+lv*.1));if(won&&lv>=(META.asc[r.cls]||0)&&lv<ASC_MAX){META.asc[r.cls]=lv+1;r.ascUp=lv+1}META.pts+=r.earned;saveMeta();if(f>G.best){G.best=f;ls('lr-best',String(f))}G.screen=won?'win':'over';G.C=null;ls('lr-run',null);render()}
 
 /* ---------- rendering ---------- */
 const $=s=>document.querySelector(s);
 /* ---------- card art ---------- */
-const MOTIF={vigil:'lanterns',beacon:'ember',thousand:'twin',bladedance:'slash',bloodoath:'ember',pyre:'burst',rebirth:'wisps',scorch:'ember',cocoonc:'moths',mothflare:'swarm',tempest:'bolt',static:'bolt',warding:'talisman',sigil:'talisman',mirror:'shield',needle:'poison',sharpkunai:'kunai',barrage:'kunai',vanish:'smoke',shadowstep:'clone',kesa:'slash',stance:'shield',bolt:'bolt',pward:'talisman',thunder:'bolt',chain:'bolt',sflame:'wisps',scroll:'scroll',mshield:'moths',seal:'talisman',shadow:'slash',evade:'veil',volley:'kunai',kunai:'kunai',dart:'poison',cloud:'smoke',smokeb:'smoke',flurry:'twin',assassin:'slash',clone:'clone',venom:'poison',backflip:'veil',storm:'kunai',catalyst:'poison',strike:'slash',iai:'slash',riposte:'slash',ember:'ember',twin:'twin',crescent:'crescent',guard:'shield',veil:'veil',wall:'shoji',light:'lantern',kindle:'lantern',oath:'lanterns',burst:'burst',moths:'moths',swarm:'swarm',harvest:'moths',focus:'moon',meditate:'moon'};
-const SUB={slash:'Blade',ember:'Blade · Flame',twin:'Blade',crescent:'Blade',shield:'Stance',veil:'Ink',shoji:'Paper',lantern:'Lantern',lanterns:'Lantern',burst:'Lantern',moths:'Moth',swarm:'Moth',moon:'Spirit',bolt:'Spell',talisman:'Talisman',wisps:'Spell',scroll:'Scroll',kunai:'Kunai',poison:'Poison',smoke:'Trick',clone:'Shadow'};
-const RARE=['thousand','pyre','bloodoath','tempest','mothflare','warding','sharpkunai','vanish','oath','swarm','burst','crescent','harvest','ember','kesa','thunder','chain','seal','assassin','clone','venom','storm','catalyst'],STARTER=['strike','guard','light','bolt','pward','moths','shadow','evade','volley','kunai'];
+const MOTIF={staff:'staff',spin:'staff',sweep:'staff',pillar:'pillar',grow:'pillar',ironpole:'staff',ruyi:'pillar',cloudstep:'cloud',somersault:'cloud',hairclone:'monkey',pluck:'monkey',horde:'monkeys',mountain:'monkeys',mob:'monkeys',decoy:'monkey',warcry:'monkeys',goldbody:'gold',stonehide:'gold',vajra:'gold',grin:'monkey',havoc:'gold',peach:'peach',vigil:'lanterns',beacon:'ember',thousand:'twin',bladedance:'slash',bloodoath:'ember',pyre:'burst',rebirth:'wisps',scorch:'ember',cocoonc:'moths',mothflare:'swarm',tempest:'bolt',static:'bolt',warding:'talisman',sigil:'talisman',mirror:'shield',needle:'poison',sharpkunai:'kunai',barrage:'kunai',vanish:'smoke',shadowstep:'clone',kesa:'slash',stance:'shield',bolt:'bolt',pward:'talisman',thunder:'bolt',chain:'bolt',sflame:'wisps',scroll:'scroll',mshield:'moths',seal:'talisman',shadow:'slash',evade:'veil',volley:'kunai',kunai:'kunai',dart:'poison',cloud:'smoke',smokeb:'smoke',flurry:'twin',assassin:'slash',clone:'clone',venom:'poison',backflip:'veil',storm:'kunai',catalyst:'poison',strike:'slash',iai:'slash',riposte:'slash',ember:'ember',twin:'twin',crescent:'crescent',guard:'shield',veil:'veil',wall:'shoji',light:'lantern',kindle:'lantern',oath:'lanterns',burst:'burst',moths:'moths',swarm:'swarm',harvest:'moths',focus:'moon',meditate:'moon'};
+const SUB={staff:'Staff',pillar:'Staff',cloud:'Cloud',monkey:'Clone',monkeys:'Clone',gold:'Golden body',peach:'Immortal',slash:'Blade',ember:'Blade · Flame',twin:'Blade',crescent:'Blade',shield:'Stance',veil:'Ink',shoji:'Paper',lantern:'Lantern',lanterns:'Lantern',burst:'Lantern',moths:'Moth',swarm:'Moth',moon:'Spirit',bolt:'Spell',talisman:'Talisman',wisps:'Spell',scroll:'Scroll',kunai:'Kunai',poison:'Poison',smoke:'Trick',clone:'Shadow'};
+const RARE=['pillar','ruyi','mountain','horde','havoc','peach','goldbody','sweep','thousand','pyre','bloodoath','tempest','mothflare','warding','sharpkunai','vanish','oath','swarm','burst','crescent','harvest','ember','kesa','thunder','chain','seal','assassin','clone','venom','storm','catalyst'],STARTER=['staff','cloudstep','hairclone','strike','guard','light','bolt','pward','moths','shadow','evade','volley','kunai'];
 const W='#ece6d7',GD='#d6ad55',INK='#0f1016';
 const lantern=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><line x1="0" y1="-22" x2="0" y2="-13" stroke="#9a96a8" stroke-width="1"/><circle r="16" fill="${GD}" opacity=".18"/><rect x="-7" y="-14" width="14" height="3" rx="1" fill="${INK}"/><ellipse rx="10" ry="12" fill="#e9b856"/><path d="M-10 -4h20M-10 2h20M-9 7h18" stroke="#a5762a" stroke-width=".8"/><rect x="-6" y="11" width="12" height="3" rx="1" fill="${INK}"/><path d="M0 -6v10" stroke="#a03a2a" stroke-width="2"/></g>`;
 const moth=(x,y,s=1,r=0)=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 0L-9 -6L-7 4Z M0 0L9 -6L7 4Z" fill="${W}"/><path d="M0 0L-6 7L-2 3Z M0 0L6 7L2 3Z" fill="#c9c3b3"/><line x1="0" y1="-3" x2="0" y2="4" stroke="${INK}" stroke-width="1.2"/></g>`;
@@ -1339,6 +1383,13 @@ function artSVG(id){
     case'lantern':g=`<circle cx="76" cy="14" r="7" fill="${W}" opacity=".85"/>${lantern(48,34,1.25)}`;break;
     case'lanterns':g=`<path d="M4 10 Q50 26 96 10" stroke="#9a96a8" fill="none"/>${lantern(22,34,.8)}${lantern(50,40,1)}${lantern(78,34,.8)}`;break;
     case'burst':g=`${Array.from({length:12},(_,i)=>{const a=i*Math.PI/6;return `<line x1="${50+Math.cos(a)*16}" y1="${34+Math.sin(a)*16}" x2="${50+Math.cos(a)*40}" y2="${34+Math.sin(a)*40}" stroke="#f2a24a" stroke-width="2"/>`}).join('')}${lantern(50,36,1.1)}`;break;
+    case'staff':g=`<path d="M10 40 Q40 6 90 14" stroke="${W}" stroke-width="2" fill="none" opacity=".6"/><path d="M14 50 Q44 18 92 24" stroke="#ffd166" stroke-width="1.4" fill="none" opacity=".7"/><line x1="12" y1="58" x2="88" y2="6" stroke="#b8322a" stroke-width="5" stroke-linecap="round"/><line x1="12" y1="58" x2="19" y2="53" stroke="${GD}" stroke-width="6.5"/><line x1="81" y1="11" x2="88" y2="6" stroke="${GD}" stroke-width="6.5"/>`;break;
+    case'pillar':g=`<rect x="44" y="0" width="12" height="64" fill="#b8322a"/><rect x="42" y="0" width="16" height="8" fill="${GD}"/><rect x="42" y="54" width="16" height="10" fill="${GD}"/>${[14,30].map(y=>`<path d="M36 ${y} l-8 6 M64 ${y} l8 6" stroke="#ffd166" stroke-width="2" stroke-linecap="round"/>`).join('')}<path d="M50 -2 l-6 8 h12z" fill="#ffd166" opacity=".8"/><path d="M0 60 Q20 50 40 58 M60 58 Q80 50 100 60" stroke="${W}" stroke-width="3" fill="none" opacity=".6"/>`;break;
+    case'cloud':g=`${[[30,40,1.2],[66,28,1],[54,50,.8]].map(([x,y,k])=>`<g transform="translate(${x} ${y}) scale(${k})"><path d="M-22 6 Q-24 -6 -12 -6 Q-10 -16 2 -14 Q12 -20 18 -8 Q28 -8 24 6Z" fill="${W}"/><path d="M-12 0 q4 -4 8 0 q4 4 8 0" stroke="#d6ad55" stroke-width="1.4" fill="none"/></g>`).join('')}<path d="M80 6 Q94 18 86 34" stroke="#ffd166" stroke-width="2" fill="none" stroke-dasharray="3 4"/>`;break;
+    case'monkey':g=`<circle cx="50" cy="32" r="22" fill="#ffd166" opacity=".14"/>${monkFace(50,32,2.4)}<path d="M80 12 q6 -4 10 2 M82 18 q6 0 6 6" stroke="#c9b8a0" stroke-width="1.6" fill="none"/>`;break;
+    case'monkeys':g=[[20,40,1.2],[50,30,1.6],[80,40,1.2],[34,54,.9],[66,54,.9]].map(([x,y,k])=>monkFace(x,y,k)).join('');break;
+    case'gold':g=`${Array.from({length:12},(_,i)=>{const a=i*Math.PI/6;return `<line x1="${50+Math.cos(a)*18}" y1="${32+Math.sin(a)*18}" x2="${50+Math.cos(a)*40}" y2="${32+Math.sin(a)*40}" stroke="#ffd166" stroke-width="2" opacity=".8"/>`}).join('')}<circle cx="50" cy="32" r="17" fill="#d6ad55" stroke="#ffd166" stroke-width="2"/><text x="50" y="40" text-anchor="middle" font-size="22" font-weight="800" fill="#5a3a10" style="font-family:var(--f-disp)">金</text>`;break;
+    case'peach':g=`<circle cx="50" cy="34" r="24" fill="#ffd166" opacity=".12"/><path d="M50 18 Q30 16 28 36 Q30 56 50 56 Q70 56 72 36 Q70 16 50 18Z" fill="#f4a3a8"/><path d="M50 20 Q44 34 50 54" stroke="#d9707a" stroke-width="2" fill="none"/><path d="M50 56 Q66 52 70 38 Q66 50 50 56Z" fill="#e8838c"/><path d="M50 18 Q60 6 72 10 Q62 18 50 18Z" fill="#62b89d"/><path d="M50 18 L48 10" stroke="#5a3420" stroke-width="2"/>`;break;
     case'moths':g=`<circle cx="50" cy="30" r="18" fill="${W}" opacity=".12"/>${moth(34,24,1.3,-15)}${moth(58,18,1,10)}${moth(66,40,1.2,20)}${moth(42,44,.9,-5)}`;break;
     case'swarm':g=Array.from({length:14},(_,i)=>moth(10+(i*37)%82,8+(i*23)%46,.6+(i%3)*.25,(i*47)%60-30)).join('');break;
     case'bolt':g=`<path d="M30 10 Q50 4 70 10" stroke="#3d4180" stroke-width="10" fill="none"/><path d="M58 6 L42 30 L54 30 L36 60 L66 26 L52 26 L66 6Z" fill="#ece6d7" stroke="#8a90ea" stroke-width="1.5"/>`;break;
@@ -1468,7 +1519,28 @@ const NINJA=`<ellipse cx="50" cy="104" rx="26" ry="5" fill="#000" opacity=".45"/
 <g class="h-arm"><path d="M60 52 Q68 55 70 62" stroke="#262734" stroke-width="7" stroke-linecap="round" fill="none"/><circle cx="70" cy="62" r="3" fill="#e8d6bc"/><line x1="70" y1="62" x2="84" y2="46" stroke="#d9dde6" stroke-width="2.2" stroke-linecap="round"/><rect x="68" y="60" width="5" height="5" fill="#0f1016" transform="rotate(-48 70.5 62.5)"/></g></g>
 <path class="h-slash" d="M68 6 Q106 40 74 96" stroke="#c48ad6" stroke-width="3" stroke-linecap="round" fill="none"/>
 <circle class="h-ward" cx="50" cy="62" r="42" fill="#8a3f86" fill-opacity=".12" stroke="#c48ad6" stroke-width="3"/>`;
-const HEROSVG={samurai:()=>HERO,wizard:()=>WIZARD,ninja:()=>NINJA};
+function wukongSVG(){const g=Math.min((G.C&&G.screen==='combat'&&G.C.staff)||0,12),F=24+g*2.4,B=14,ux=.65,uy=-.76,x0=70-ux*B,y0=62-uy*B,x1=70+ux*F,y1=62+uy*F;
+return `<ellipse cx="50" cy="104" rx="26" ry="5" fill="#000" opacity=".45"/>
+<g class="h-body"><path class="h-scarf" d="M40 80 Q22 88 16 74 Q12 62 24 60 Q28 61 27 65" stroke="#7a4a24" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+<path d="M40 86 L47 86 L46 99 L37 101Z" fill="#4a2c1a"/><path d="M53 86 L60 86 L63 101 L54 99Z" fill="#4a2c1a"/><path d="M35 98 h12 v4 h-13Z M53 98 h12 l1 4 h-13Z" fill="#2a1a10"/>
+<path d="M37 72 L63 72 L66 88 L34 88Z" fill="#e0a530"/><path d="M40 74 l3 8 M47 73 l2 9 M54 73 l1 10 M60 74 l-1 9" stroke="#2a1a10" stroke-width="2" stroke-linecap="round"/>
+<path d="M37 47 L63 47 L64 72 L36 72Z" fill="#b8322a"/><path d="M41 50 Q50 58 59 50 L59 62 Q50 67 41 62Z" fill="#d9a63a" stroke="#8a5a1a" stroke-width="1"/><path d="M45 56 h10 M45 60 h10" stroke="#8a5a1a" stroke-width="1"/><rect x="36" y="67" width="28" height="5" fill="#e8c25a"/><circle cx="50" cy="69.5" r="2.4" fill="#c4304a"/>
+<path d="M36 47 Q30 47 31 54 L38 53Z M64 47 Q70 47 69 54 L62 53Z" fill="#e8c25a"/>
+<path d="M39 53 Q30 58 28 65" stroke="#8a5a2e" stroke-width="7" stroke-linecap="round" fill="none"/><circle cx="28" cy="65" r="3.2" fill="#e8c49a"/>
+<circle cx="39.5" cy="37.5" r="3.6" fill="#e8c49a"/><circle cx="62.5" cy="37.5" r="3.6" fill="#e8c49a"/><circle cx="51" cy="36" r="11" fill="#8a5a2e"/>
+<path d="M43.5 33 Q51 28.5 58.5 33 Q61 42 51 46.5 Q41 42 43.5 33Z" fill="#e8c49a"/>
+<g class="m-eye"><circle cx="47.7" cy="36.2" r="1.6" fill="#1a1010"/><circle cx="54.3" cy="36.2" r="1.6" fill="#1a1010"/><circle cx="48.1" cy="35.8" r=".5" fill="#ffd166"/><circle cx="54.7" cy="35.8" r=".5" fill="#ffd166"/></g>
+<path d="M45.5 33.6 l4 1 M56.5 33.6 l-4 1" stroke="#5a3420" stroke-width="1.2" stroke-linecap="round"/><path d="M49.6 40.2 h2.8" stroke="#5a3420" stroke-width="1"/><path d="M47.6 42.6 Q51 44.6 54.4 42.6" stroke="#5a3420" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+<path d="M40.5 30 Q51 24.5 61.5 30" stroke="#e8c25a" stroke-width="2.4" fill="none"/><circle cx="51" cy="27" r="1.6" fill="#c4304a" stroke="#e8c25a" stroke-width=".8"/>
+<path d="M46 27 Q38 10 22 4" stroke="#c4304a" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M50 26.5 Q46 8 32 0" stroke="#d6ad55" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+<g class="h-arm"><path d="M60 52 Q68 56 70 62" stroke="#b8322a" stroke-width="7.5" stroke-linecap="round" fill="none"/>
+<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#b8322a" stroke-width="3.4" stroke-linecap="round"/><line x1="${x0}" y1="${y0}" x2="${x0+ux*5}" y2="${y0+uy*5}" stroke="#e8c25a" stroke-width="4.2"/><line x1="${x1-ux*5}" y1="${y1-uy*5}" x2="${x1}" y2="${y1}" stroke="#e8c25a" stroke-width="4.2"/>${g?`<circle cx="${x1}" cy="${y1}" r="${3+g*.4}" fill="#ffd166" opacity=".35"/>`:''}
+<circle cx="70" cy="62" r="3.4" fill="#e8c49a"/></g></g>
+<path class="h-slash" d="M70 4 Q112 42 76 96" stroke="#f2c14a" stroke-width="5" stroke-linecap="round" fill="none"/>
+<circle class="h-ward" cx="50" cy="62" r="42" fill="#e8b23a" fill-opacity=".12" stroke="#e8b23a" stroke-width="3"/>`}
+const monkFace=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><circle cx="-7" r="3" fill="#e8c49a"/><circle cx="7" r="3" fill="#e8c49a"/><circle r="7.5" fill="#8a5a2e"/><path d="M-5 -2 Q0 -5 5 -2 Q6.5 4 0 6.5 Q-6.5 4 -5 -2Z" fill="#e8c49a"/><circle cx="-2.2" cy="0" r="1.1" fill="#1a1010"/><circle cx="2.2" cy="0" r="1.1" fill="#1a1010"/><path d="M-1.8 3.4 Q0 4.6 1.8 3.4" stroke="#5a3420" stroke-width=".8" fill="none"/><path d="M-6 -4.5 Q0 -8 6 -4.5" stroke="#e8c25a" stroke-width="1.2" fill="none"/></g>`;
+const monkSVG=`<svg viewBox="-11 -9 22 18" aria-hidden="true">${monkFace(0,0,1)}</svg>`;
+const HEROSVG={samurai:()=>HERO,wizard:()=>WIZARD,ninja:()=>NINJA,wukong:wukongSVG};
 const mothSVG=`<svg viewBox="-10 -8 20 16" aria-hidden="true">${moth(0,0,1,0)}</svg>`;
 const lampSVG=`<svg viewBox="-12 -24 24 40" aria-hidden="true">${lantern(0,0,1)}</svg>`;
 const NCOL={fight:'#ece6d7',elite:'#e5743f',rest:'#62b89d',shrine:'#c9b8ff',shop:'#d6ad55',boss:'#e5743f'};
@@ -1528,7 +1600,7 @@ function mapInfo(){
 /* ---------- battle effects ---------- */
 const RMQ=()=>G.motion==='reduced';
 try{const _an=Element.prototype.animate;Element.prototype.animate=function(k,o){try{return _an.call(this,k,o)}catch(e){const el=this;return{set onfinish(f){setTimeout(()=>f&&f(),(o&&o.duration||0)+((o&&o.delay)||0))},cancel(){}}}}}catch(e){}
-const CCOL={samurai:'#f2a24a',wizard:'#b9bdf5',ninja:'#e0b8ff'},AURA={samurai:'#d6ad55',wizard:'#9b6fd1',ninja:'#c48ad6'};
+const CCOL={samurai:'#f2a24a',wizard:'#b9bdf5',ninja:'#e0b8ff',wukong:'#ffd166'},AURA={samurai:'#d6ad55',wizard:'#9b6fd1',ninja:'#c48ad6',wukong:'#e8b23a'};
 const ctr=r=>({x:r.left+r.width/2,y:r.top+r.height/2});
 function spawn(html,x,y,cls=''){const d=document.createElement('div');d.className='fxp '+cls;d.innerHTML=html;d.style.left=x+'px';d.style.top=y+'px';document.getElementById('fx').appendChild(d);return d}
 function run(el,kf,o){const a=el.animate(kf,Object.assign({fill:'both',easing:'ease-out'},o));a.onfinish=()=>el.remove();return a}
@@ -1559,7 +1631,7 @@ function boltFx(from,to,delay){
   document.getElementById('fx').appendChild(d);run(d,[{opacity:0},{opacity:1,offset:.1},{opacity:.25,offset:.3},{opacity:1,offset:.45},{opacity:0}],{duration:320,delay})}
 function kunaiFx(from,to,dur,delay){const el=spawn(`<svg width="26" height="26" viewBox="-13 -13 26 26"><path d="M0 -12 L3.5 0 L0 3 L-3.5 0Z" fill="#e6e9f0"/><circle cy="8" r="3" fill="none" stroke="#9a96a8" stroke-width="1.5"/></svg>`,from.x,from.y);
   run(el,[{transform:'translate(0,0) rotate(0)'},{transform:`translate(${to.x-from.x}px,${to.y-from.y}px) rotate(1080deg)`}],{duration:dur,delay,easing:'linear'})}
-function mothFx(from,to,dur,delay){const el=spawn(`<svg width="22" height="18" viewBox="-10 -8 20 16">${moth(0,0,1,0)}</svg>`,from.x,from.y),wob=Math.random()*80-40;
+function mothFx(from,to,dur,delay,monk){const el=spawn(monk?`<svg width="24" height="20" viewBox="-11 -9 22 18">${monkFace(0,0,1)}</svg>`:`<svg width="22" height="18" viewBox="-10 -8 20 16">${moth(0,0,1,0)}</svg>`,from.x,from.y),wob=Math.random()*80-40;
   run(el,[{transform:'translate(0,0) scaleX(1)',opacity:0},{transform:`translate(${(to.x-from.x)*.3}px,${(to.y-from.y)*.3+wob}px) scaleX(.4)`,opacity:1,offset:.3},{transform:`translate(${(to.x-from.x)*.7}px,${(to.y-from.y)*.7-wob}px) scaleX(1)`,offset:.7},{transform:`translate(${to.x-from.x}px,${to.y-from.y}px) scaleX(.4)`,opacity:1}],{duration:dur,delay,easing:'ease-in-out'})}
 function shake(delay,mag){const st=document.querySelector('.stage');if(!st)return;const f=[0,1,2,3,4,5].map(k=>({transform:k===0||k===5?'none':`translate(${(Math.random()*2-1)*mag}px,${(Math.random()*2-1)*mag*.6}px)`}));st.animate(f,{duration:340,delay})}
 function flashUnit(u,delay,dir=1,col='#fff'){if(!u)return;u.animate([{filter:'none',transform:'none'},{filter:`brightness(3.2) saturate(0) drop-shadow(0 0 8px ${col})`,transform:`translateX(${dir*16}px) rotate(${dir*5}deg) scale(.96,1.04)`,offset:.18},{filter:'none',transform:`translateX(${-dir*4}px) rotate(${-dir*1}deg)`,offset:.55},{filter:'none',transform:'none'}],{duration:420,delay,easing:'ease-out'})}
@@ -1602,10 +1674,10 @@ function playFx(){
   if(act&&act.kind!=='atk')sfx(act.kind==='def'?'clank':'chime',60);
   if(hblk&&H)num(H.left+H.width/2,H.top+H.height*.15,`+${hblk} block`,'blk',act&&act.kind==='atk'?base:120);
   const mothT=520;
-  if(mf)sfx('moths',60);
-  if(mf&&H){const from={x:H.left+H.width/2,y:H.top+H.height*.45};targets.forEach(i=>{const r=uR(i);if(!r)return;for(let k=0;k<Math.min(mf.n,7);k++)mothFx(from,ctr(r),mothT-k*30,k*35)})}
-  const cnt={},last={};let total=0;const col=mf?'#ece6d7':CCOL[cls];
-  hits.forEach(h=>{const k=cnt[h.i]=(cnt[h.i]||0);cnt[h.i]++;const t=(mf?mothT:base)+k*(mf?60:100),r=uR(h.i);if(!r)return;const p=ctr(r);last[h.i]=Math.max(last[h.i]||0,t);total+=h.n;sfx(mf?'thunk':act&&act.kind==='atk'?(cls==='wizard'?'spellhit':ranged?'thunk':'slice'):'thunk',t,k);if(h.b>0&&!h.n)sfx('clank',t);
+  if(mf)sfx(mf.monk?'claw':'moths',60);
+  if(mf&&H){const from={x:H.left+H.width/2,y:H.top+H.height*.45};targets.forEach(i=>{const r=uR(i);if(!r)return;for(let k=0;k<Math.min(mf.n,7);k++)mothFx(from,ctr(r),mothT-k*30,k*35,mf.monk)})}
+  const cnt={},last={};let total=0;const col=mf?(mf.monk?'#ffd166':'#ece6d7'):CCOL[cls];
+  hits.forEach(h=>{const k=cnt[h.i]=(cnt[h.i]||0);cnt[h.i]++;const t=(mf?mothT:base)+k*(mf?60:100),r=uR(h.i);if(!r)return;const p=ctr(r);last[h.i]=Math.max(last[h.i]||0,t);total+=h.n;sfx(mf?'thunk':act&&act.kind==='atk'?(cls==='wizard'?'spellhit':ranged?'thunk':cls==='wukong'?'thud':'slice'):'thunk',t,k);if(h.b>0&&!h.n)sfx('clank',t);
     if(!rm){slash(p.x,p.y,mf?'burst':(act&&act.kind==='atk'?kind:'burst'),t,mf?'#ece6d7':col,k%2);sparks(p.x,p.y,col,h.n>=12?12:7,t);flashUnit(unitEl(h.i),t,1,col)}
     if(h.n>0)num(p.x+(k%2?14:-6),r.top+r.height*.2,h.n,h.n>=15?'big':'',t);
     if(h.b>0)num(p.x+20,r.top+r.height*.5,`${h.b} blocked`,'blk',t+80)});
@@ -1776,6 +1848,9 @@ const KW=[
  {re:/poison/i,n:'毒 Poison',x:()=>`At the start of the enemy turn, a poisoned enemy loses HP equal to its poison${tal('v3')?' +2':''}, then poison drops by 1.`},
  {re:/block/i,n:'盾 Block',x:()=>'Block absorbs incoming damage. It wears off at the start of your next turn.'},
  {re:/strength/i,n:'力 Strength',x:()=>'Each point of strength adds 1 damage to every hit of your attacks. Enemies lose strength from some cards.'},
+ {re:/staff/i,n:'棒 Staff growth',x:c=>`Your iron staff grows during a battle. Each point adds 1 damage to staff attacks${c&&c.staff?` (now +${c.staff})`:''}. It resets after the battle.`},
+ {re:/monkey/i,n:'猴 Monkey clone',x:()=>`At the end of your turn, each clone deals ${tal('c2')?4:3} damage${tal('c4')?' to every enemy':' to your target'}. ${tal('c3')?'Clones stay for the whole battle.':'You lose one clone each time an attack damages you.'}`},
+ {re:/hit you/i,n:'金 Counter',x:()=>'Damage an enemy takes every time one of its hits lands on you, even if your block stops it.'},
  {re:/kunai/i,n:'苦 Kunai',x:()=>'A free 0-cost card: deal 4 damage, then it is exhausted.'},
  {re:/exhaust/i,n:'消 Exhaust',x:()=>'An exhausted card is removed until the battle ends.'},
  {re:/energy/i,n:'気 Energy',x:()=>'You spend energy to play cards. It refills at the start of each turn.'},
@@ -1819,8 +1894,8 @@ if(typeof window!=='undefined'&&window.addEventListener&&typeof document.element
 }
 function heroHTML(c){const hs=Math.max(0,(c.hshown??G.run.hp)/G.run.maxHp*100);c.hshown=G.run.hp;
   const m=Math.min(c.moths,8),l=Math.min(c.lanterns,5);
-  return `<div class="hero ${c.anim||''}"><div class="fig">${l?`<div class="lamps" aria-hidden="true">${lampSVG.repeat(l)}</div>`:''}<svg viewBox="0 -8 100 116" role="img" aria-label="${CLS().hero}, ${CLS().sub.toLowerCase()}">${HEROSVG[G.run.cls||'samurai']()}</svg>${m?`<div class="orbit" aria-hidden="true">${Array.from({length:m},(_,i)=>`<span style="--a:${i*360/m}deg">${mothSVG}</span>`).join('')}</div>`:''}</div><span class="nm">${CLS().hero}</span><span class="hpwrap">${c.block?`<span class="blk2" title="Block: absorbs damage until your next turn">${c.block}</span>`:''}<span class="hpbar ${c.block?'shielded':''}" data-hp="${Math.max(0,G.run.hp/G.run.maxHp*100)}%"><i class="lag" style="width:${hs}%"></i><i class="cur" style="width:${hs}%"></i><em class="hpn">${Math.max(0,G.run.hp)}/${G.run.maxHp}</em></span></span>
-  <button class="hstat" data-a="status" aria-label="Your status effects">${c.block?`<i class="b" title="Block">盾${c.block}</i>`:''}${c.lanterns?`<i title="Lanterns: +${c.lpow} block each turn">灯${c.lanterns}</i>`:''}${c.moths?`<i title="Paper moths">蛾${c.moths}</i>`:''}${c.str?`<i class="r" title="Strength">力${c.str}</i>`:''}${c.venom?`<i class="g" title="Venom">毒${c.venom}</i>`:''}${c.clones?`<i title="Shadow clones">影${c.clones}</i>`:''}<i class="q">?</i></button></div>`;
+  return `<div class="hero ${c.anim||''}"><div class="fig">${l?`<div class="lamps" aria-hidden="true">${lampSVG.repeat(l)}</div>`:''}<svg viewBox="0 -8 100 116" role="img" aria-label="${CLS().hero}, ${CLS().sub.toLowerCase()}">${HEROSVG[G.run.cls||'samurai']()}</svg>${c.monkeys?`<div class="monks" aria-hidden="true">${monkSVG.repeat(Math.min(c.monkeys,8))}</div>`:''}${m?`<div class="orbit" aria-hidden="true">${Array.from({length:m},(_,i)=>`<span style="--a:${i*360/m}deg">${mothSVG}</span>`).join('')}</div>`:''}</div><span class="nm">${CLS().hero}</span><span class="hpwrap">${c.block?`<span class="blk2" title="Block: absorbs damage until your next turn">${c.block}</span>`:''}<span class="hpbar ${c.block?'shielded':''}" data-hp="${Math.max(0,G.run.hp/G.run.maxHp*100)}%"><i class="lag" style="width:${hs}%"></i><i class="cur" style="width:${hs}%"></i><em class="hpn">${Math.max(0,G.run.hp)}/${G.run.maxHp}</em></span></span>
+  <button class="hstat" data-a="status" aria-label="Your status effects">${c.block?`<i class="b" title="Block">盾${c.block}</i>`:''}${c.lanterns?`<i title="Lanterns: +${c.lpow} block each turn">灯${c.lanterns}</i>`:''}${c.moths?`<i title="Paper moths">蛾${c.moths}</i>`:''}${c.str?`<i class="r" title="Strength">力${c.str}</i>`:''}${c.venom?`<i class="g" title="Venom">毒${c.venom}</i>`:''}${c.clones?`<i title="Shadow clones">影${c.clones}</i>`:''}${c.staff?`<i class="r" title="Staff growth">棒${c.staff}</i>`:''}${c.monkeys?`<i title="Monkey clones">猴${c.monkeys}</i>`:''}${c.counter?`<i class="r" title="Counter damage">金${c.counter}</i>`:''}<i class="q">?</i></button></div>`;
 }
 const unitSVG=k=>`<svg viewBox="0 -8 100 116" aria-hidden="true">${UNITS[k]}</svg>`;
 function bar(){
@@ -1836,11 +1911,11 @@ function render(){
     const best=G.best?(G.best>FPA*3?'Cleared all three acts':`Best: Act ${ROMAN[Math.min(2,Math.ceil(G.best/FPA)-1)]}, floor ${(G.best-1)%FPA+1}`):'No runs yet';
     const item=(a,label,sub,primary,badge)=>`<button class="mi ${primary?'pri':''}" data-a="${a}"><span class="mk" aria-hidden="true"></span><span class="ml"><b>${label}</b>${sub?`<small>${sub}</small>`:''}</span>${badge?`<span class="badge">${badge}</span>`:''}</button>`;
     h=`<div class="menu">
-    <div class="keyart">${battleBG(1,'')}<div class="trio" aria-hidden="true">${['wizard','samurai','ninja'].map(k=>`<span class="tk ${k}"><svg viewBox="0 -8 100 116">${HEROSVG[k]()}</svg></span>`).join('')}</div></div>
+    <div class="keyart">${battleBG(1,'')}<div class="trio" aria-hidden="true">${['wizard','samurai','ninja','wukong'].map(k=>`<span class="tk ${k}"><svg viewBox="0 -8 100 116">${HEROSVG[k]()}</svg></span>`).join('')}</div></div>
     <div class="logo"><span class="seal" aria-hidden="true">灯<br>の<br>道</span><div><h1>Lantern<br>Road</h1><p class="tagline">A deck-building roguelike</p></div></div>
     <nav class="mlist" aria-label="Main menu">
       ${cont?item('resume','Continue',cont,true):''}
-      ${item('new','New run','Samurai · Wizard · Ninja',!cont)}
+      ${item('new','New run','Samurai · Wizard · Ninja · Wukong',!cont)}
       ${item('talents','Talents','Spend spirit embers',false,META.pts?`${META.pts} ✦`:'')}
       ${item('settings','Settings','Music, sound, animations')}
     </nav>
@@ -1861,7 +1936,7 @@ function render(){
     const k=G.pickCls||'samurai',x=CLASSES[k],bk=G.pickBuild&&x.builds[G.pickBuild]?G.pickBuild:Object.keys(x.builds)[0],B=x.builds[bk];
     h=`<div class="stack pick">${hdr("旅","New run","Choose your traveler","")}
     <div class="pl"><div class="clsrow" role="tablist">${Object.entries(CLASSES).map(([ck,c])=>`<button class="ctab ${ck===k?'on':''}" role="tab" aria-selected="${ck===k}" data-a="pcls" data-v="${ck}"><span class="pic"><svg viewBox="0 -8 100 116" aria-hidden="true">${HEROSVG[ck]()}</svg></span><b>${c.n}</b><small>HP ${c.hp}${META.asc[ck]?` · <span class="ascb">Asc ${META.asc[ck]}</span>`:''}</small></button>`).join('')}</div>
-    <p class="muted" style="font-size:13px"><b style="color:var(--washi)">${x.hero}</b>, ${x.sub.toLowerCase()}. ${x.x}</p>
+    <p class="muted" style="font-size:13px"><b style="color:var(--washi)">${x.hero}</b>, ${x.sub[0].toLowerCase()+x.sub.slice(1)}. ${x.x}</p>
     ${(()=>{const top=META.asc[k]||0,lv=Math.min(G.pickAsc??top,top);return `<div class="ascrow ${lv?'on':''}"><button class="ab" data-a="ascSel" data-v="-1" ${lv<=0?'disabled':''} aria-label="Lower ascension">‹</button><span class="at"><b>${lv?`Ascension ${lv}`:'Ascension off'}<i>${x.n} ${top?`· unlocked ${top}/${ASC_MAX}`:'· locked'}</i></b><small>${lv?`${ASC[lv]}${lv>1?` Plus ${lv-1} earlier rule${lv>2?'s':''}.`:''} Embers +${lv*10}%.`:top?'Tap › to raise the difficulty.':`Clear all three acts with ${x.n} to unlock Ascension 1.`}</small></span><button class="ab" data-a="ascSel" data-v="1" ${lv>=top?'disabled':''} aria-label="Raise ascension">›</button></div>`})()}</div>
     <div class="pr"><p class="label">Build</p>
     <div class="blist" role="radiogroup">${Object.entries(x.builds).map(([id,b])=>{const tl=TALENTS[k][id],got=tl.filter(t=>META.t[k].includes(t[0])).length;return `<button class="brow ${id===bk?'on':''}" role="radio" aria-checked="${id===bk}" data-a="pbuild" data-v="${id}"><span class="rad"></span><span class="bt"><b>${b.n}</b><small>${b.x}</small><span class="sigs">${b.sig.map(c=>`<i>${CARDS[c].n}</i>`).join('')}</span></span><span class="tp" title="Talents learned">${got}/4</span></button>`}).join('')}</div>
@@ -1993,6 +2068,9 @@ function renderDeck(){
     if(c.str)rows.push([`力 Strength ${c.str}`,`Your attacks deal ${c.str>0?'+':''}${c.str} damage per hit.`]);
     if(c.venom)rows.push([`毒 Venom ${c.venom}`,`Your attacks also apply ${c.venom} poison.`]);
     if(c.clones)rows.push([`影 Shadow clones ${c.clones}`,`You get ${c.clones} free Kunai at the start of each turn.`]);
+    if(c.staff||c.grow)rows.push([`棒 Staff growth ${c.staff||0}`,`Staff attacks deal ${c.staff||0} more damage.${c.grow?` It grows by ${c.grow} at the start of each turn.`:''}`]);
+    if(c.monkeys||c.troop)rows.push([`猴 Monkey clones ${c.monkeys||0}`,`At the end of your turn they deal ${(c.monkeys||0)*(tal('c2')?4:3)} damage${tal('c4')?' to every enemy':' to your target'}.${tal('c3')?'':' You lose one each time an attack damages you.'}${c.troop?` ${c.troop} more join each turn.`:''}`]);
+    if(c.counter)rows.push([`金 Golden body ${c.counter}`,`Each time an enemy hits you, it takes ${c.counter} damage.`]);
     rows.push(['毒 Enemy poison','Poisoned enemies lose that much HP at the start of their turn, then poison drops by 1.']);
     rows.push(['◆ Enemy block and strength','Enemy block soaks your damage. Enemy strength adds to every hit of their attacks.']);
     ov.hidden=false;ov.className='overlay';ov.innerHTML=`<div class="in setin"><div class="row" style="justify-content:space-between"><h2>Status effects</h2><button class="btn sm" data-a="statusClose">Close</button></div><div class="panel stlist">${rows.map(([a,b])=>`<p><b>${a}</b><span>${b}</span></p>`).join('')}</div><p class="help">${CLS().help(c)}</p></div>`;return}
