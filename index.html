@@ -705,6 +705,12 @@ body{height:100%;overflow:hidden;overscroll-behavior:none}
 .hpbar.shielded .cur{background:linear-gradient(#d4504a,#a8302a)}
 .hpbar.shielded .hpn{color:#e6e9ff}
 @media (orientation:landscape) and (max-height:560px){.blk2{width:24px;height:26px;margin-top:-13px;left:-13px;font-size:11px}}
+
+/* block shield sits beside the bar, never clipped */
+.hpwrap{display:flex!important;align-items:center;gap:3px;width:90%!important;margin-left:0!important}
+.hpwrap .blk2{position:static;flex:0 0 auto;margin:0;left:auto;top:auto}
+.battle2 .hpwrap .hpbar{flex:1;min-width:0}
+.hstat i.b{color:#dfe3ff;box-shadow:inset 0 0 0 1px #5a64cf;background:#232650}
 </style>
 
 
@@ -1787,7 +1793,7 @@ if(typeof window!=='undefined'&&window.addEventListener&&typeof document.element
 function heroHTML(c){const hs=Math.max(0,(c.hshown??G.run.hp)/G.run.maxHp*100);c.hshown=G.run.hp;
   const m=Math.min(c.moths,8),l=Math.min(c.lanterns,5);
   return `<div class="hero ${c.anim||''}"><div class="fig">${l?`<div class="lamps" aria-hidden="true">${lampSVG.repeat(l)}</div>`:''}<svg viewBox="0 -8 100 116" role="img" aria-label="${CLS().hero}, ${CLS().sub.toLowerCase()}">${HEROSVG[G.run.cls||'samurai']()}</svg>${m?`<div class="orbit" aria-hidden="true">${Array.from({length:m},(_,i)=>`<span style="--a:${i*360/m}deg">${mothSVG}</span>`).join('')}</div>`:''}</div><span class="nm">${CLS().hero}</span><span class="hpwrap">${c.block?`<span class="blk2" title="Block: absorbs damage until your next turn">${c.block}</span>`:''}<span class="hpbar ${c.block?'shielded':''}" data-hp="${Math.max(0,G.run.hp/G.run.maxHp*100)}%"><i class="lag" style="width:${hs}%"></i><i class="cur" style="width:${hs}%"></i><em class="hpn">${Math.max(0,G.run.hp)}/${G.run.maxHp}</em></span></span>
-  <button class="hstat" data-a="status" aria-label="Your status effects">${c.lanterns?`<i title="Lanterns: +${c.lpow} block each turn">灯${c.lanterns}</i>`:''}${c.moths?`<i title="Paper moths">蛾${c.moths}</i>`:''}${c.str?`<i class="r" title="Strength">力${c.str}</i>`:''}${c.venom?`<i class="g" title="Venom">毒${c.venom}</i>`:''}${c.clones?`<i title="Shadow clones">影${c.clones}</i>`:''}<i class="q">?</i></button></div>`;
+  <button class="hstat" data-a="status" aria-label="Your status effects">${c.block?`<i class="b" title="Block">盾${c.block}</i>`:''}${c.lanterns?`<i title="Lanterns: +${c.lpow} block each turn">灯${c.lanterns}</i>`:''}${c.moths?`<i title="Paper moths">蛾${c.moths}</i>`:''}${c.str?`<i class="r" title="Strength">力${c.str}</i>`:''}${c.venom?`<i class="g" title="Venom">毒${c.venom}</i>`:''}${c.clones?`<i title="Shadow clones">影${c.clones}</i>`:''}<i class="q">?</i></button></div>`;
 }
 const unitSVG=k=>`<svg viewBox="0 -8 100 116" aria-hidden="true">${UNITS[k]}</svg>`;
 function bar(){
