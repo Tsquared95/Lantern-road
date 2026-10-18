@@ -780,7 +780,7 @@ const CARDS={
  shadow:{n:'Shadow strike',c:1,t:'atk',x:'Deal 6 damage.',p(){hit(6)}},
  evade:{n:'Evade',c:1,t:'skl',x:'Gain 5 block.',p(){C().block+=5}},
  volley:{n:'Kunai volley',c:1,t:'skl',x:'Add 2 Kunai to your hand.',p(){addHand('kunai',2)}},
- kunai:{n:'Kunai',c:0,t:'atk',ex:1,x:'Deal 4 damage. Exhaust.',p(){const c=C();hit(4+(tal('k2')?2:0)+3*(c.kunaiB||0));if(tal('k3'))c.block+=1}},
+ kunai:{n:'Kunai',c:0,t:'atk',ex:1,x:'Deal 4 damage. Exhaust.',p(){const c=C();hit(4+(tal('k2')?2:0)+(c.kunaiB2?2:0)+3*(c.kunaiB||0));if(tal('k3'))c.block+=1}},
  vigil:{n:'Lantern vigil',c:1,t:'skl',x:'Gain 3 block per lantern. Draw 1.',p(){C().block+=3*C().lanterns;draw(1)}},
  beacon:{n:'Beacon strike',c:1,t:'atk',x:'Deal 4 damage, plus 3 per lantern.',p(){hit(4+3*C().lanterns)}},
  thousand:{n:'Thousand cuts',c:2,t:'atk',x:'Deal 2 damage six times.',p(){for(let j=0;j<6;j++)hit(2)}},
@@ -902,7 +902,7 @@ const ASC_MAX=10,ASC=[null,
  'Between acts you recover only half your missing HP.',
  'Elites and bosses start every fight with 12 block and +1 more strength.'];
 const ascLv=()=>G.run&&G.run.asc||0,asc=n=>ascLv()>=n;
-const restPct=()=>asc(5)?.2:.3;
+const restPct=()=>asc(5)?.2:.3,restAmt=()=>Math.round(G.run.maxHp*restPct())+(has('beads')?10:0);
 const tal=k=>!!(G.run&&META.t[G.run.cls]&&META.t[G.run.cls].includes(k));
 const CLS=()=>CLASSES[(G.run&&G.run.cls)||'samurai'];
 const CARDS_END=0;
@@ -945,11 +945,26 @@ const RELICS={
  blade:{n:'Ancestral blade',boss:1,x:'Start each battle with 2 strength.'},
  flame:{n:'Eternal flame',boss:1,cls:'samurai',x:'Lanterns grant 2 more block. Start battles with a lit lantern.'},
  kami:{n:'Mountain kami charm',boss:1,x:'Gain 20 max HP.',on(){G.run.maxHp+=20;G.run.hp+=20}},
+ bell:{n:'Temple bell',x:'Gain 3 block at the start of each turn.'},
+ koi:{n:'Lucky koi',x:'Gain 12 more gold after each battle.'},
+ fan:{n:'Iron war fan',x:'Gain 1 extra energy on your first turn.'},
+ mask:{n:'Oni mask',x:'Enemies start battles with 1 less strength.'},
+ beads:{n:'Prayer beads',x:'Campfires heal 10 more HP.'},
+ daruma:{n:'Daruma doll',x:'Start each battle with 8 block.'},
+ screen:{n:'Paper screen',cls:'samurai',x:'Each lantern grants 1 more block.'},
+ tsuba:{n:'Ancestral tsuba',cls:'samurai',x:'Gain 2 block whenever you play an attack.'},
+ inkstone:{n:'Inkstone',cls:'wizard',x:'Paper moths deal 1 more damage.'},
+ brush:{n:'Calligraphy brush',cls:'wizard',x:'Start each battle with 2 paper moths.'},
+ tabi:{n:'Silent tabi',cls:'ninja',x:'Enemies start battles with 3 poison.'},
+ whet2:{n:'Shadow whetstone',cls:'ninja',x:'Kunai deal 2 more damage.'},
+ egg:{n:'Stone egg',cls:'wukong',x:'Start each battle with 1 monkey clone and 2 counter.'},
  circlet:{n:'Golden circlet',cls:'wukong',x:'Start each battle with 2 staff growth.'},
  nimbus:{n:'Flying nimbus',boss:1,cls:'wukong',x:'Summon a monkey clone at the start of each turn.'},
  furnace:{n:'Eight Trigrams furnace',boss:1,cls:'wukong',x:'Enemies take 3 damage each time they hit you.'},
  pouch:{n:'Kunai pouch',cls:'ninja',x:'Start each battle with 2 Kunai in hand.'},
  fang:{n:'Viper fang',boss:1,cls:'ninja',x:'Your attacks also apply 1 poison.'},
+ hall:{n:'Lantern festival',boss:1,cls:'samurai',x:'Start each battle with 2 lit lanterns.'},
+ tome:{n:'Forbidden scroll',boss:1,cls:'wizard',x:'Draw 1 extra card every turn.'},
 };
 const PERKS={
  thick:{n:'Thick skin',x:'Gain 10 max HP.',on(){G.run.maxHp+=10;G.run.hp+=10}},
@@ -1019,11 +1034,13 @@ const ITEMS={
  incense:{n:'Spirit incense',kind:'vial',col:'#9b6fd1',x:'Gain 2 energy.',f(){C().energy+=2}},
  haste:{n:'Scroll of haste',kind:'scroll',x:'Draw 3 cards.',f(){draw(3)}},
  venomv:{n:'Venom vial',kind:'vial',col:'#3f9a72',x:'Apply 8 poison to the targeted enemy.',f(){poison(target(),8)}},
- mothl:{n:'Moth lantern',kind:'lantern',x:'Release 5 paper moths.',f(){C().moths+=5}},
- oil:{n:'Lantern oil',kind:'vial',col:'#d6ad55',x:'Light 2 lanterns.',f(){C().lanterns+=2}},
- kunaib:{n:'Kunai bundle',kind:'kunai',x:'Add 3 Kunai to your hand.',f(){addHand('kunai',3)}},
+ mothl:{n:'Moth lantern',cls:'wizard',kind:'lantern',x:'Release 5 paper moths.',f(){C().moths+=5}},
+ oil:{n:'Lantern oil',cls:'samurai',kind:'vial',col:'#d6ad55',x:'Light 2 lanterns.',f(){C().lanterns+=2}},
+ kunaib:{n:'Kunai bundle',cls:'ninja',kind:'kunai',x:'Add 3 Kunai to your hand.',f(){addHand('kunai',3)}},
+ hairp:{n:'Hair tuft pellet',cls:'wukong',kind:'pellet',x:'Summon 3 monkey clones.',f(){C().monkeys=(C().monkeys||0)+3}},
+ ruyio:{n:'Growth elixir',cls:'wukong',kind:'vial',col:'#e8c25a',x:'Your staff grows by 4.',f(){C().staff=(C().staff||0)+4}},
 };
-function randItem(){const ks=Object.keys(ITEMS).filter(k=>!ITEMS[k].rare);return Math.random()<.08?'phoenix':pick(ks)}
+function randItem(){const ks=Object.keys(ITEMS).filter(k=>!ITEMS[k].rare&&(!ITEMS[k].cls||!G.run||ITEMS[k].cls===G.run.cls));return Math.random()<.08?'phoenix':pick(ks)}
 function gainItem(k){const r=G.run;if(!r.items)r.items=[];if(r.items.length>=3)return false;r.items.push(k);return true}
 function itemIcon(k){const o=ITEMS[k];if(!o)return '';switch(o.kind){
  case'gourd':return `<svg viewBox="-12 -12 24 24" aria-hidden="true"><rect x="-1.6" y="-11.5" width="3.2" height="3" fill="#8a6a4a"/><circle cx="0" cy="-5" r="3.8" fill="${o.col}"/><circle cx="0" cy="4" r="6.8" fill="${o.col}"/><path d="M-4 -5.6 h8" stroke="#efe8d6" stroke-width="1.4"/><ellipse cx="-2.6" cy="2" rx="1.6" ry="2.6" fill="#fff" opacity=".35"/></svg>`;
@@ -1296,18 +1313,18 @@ function startCombat(kind){
   G.C={kind,enemies:keys.map(k=>mkFoe(k,Math.round(diff()*.8))),draw:shuffle([...G.run.deck]),hand:[],discard:[],exhaust:[],energy:3,emax:3+(has('core')?1:0),block:0,lanterns:(has('wick')?1:0)+(has('flame')?1:0)+(tal('s1')?1:0),lpow:2+(has('flame')?2:0)+(tal('s2')?1:0),moths:(has('jar')?3:0)+(tal('m1')?2:0),str:(has('blade')?2:0)+(tal('b3')?1:0),venom:0,clones:0,kunaiB:0,nextDraw:0,startBlock:(tal('w1')?6:0)+(tal('h1')?6:0)+(tal('g1')?6:0),staff:(tal('r1')?2:0)+(perk('band')?3:0)+(has('circlet')?2:0),grow:0,monkeys:(tal('c1')?2:0)+(perk('troopp')?2:0),troop:0,counter:(tal('g2')?2:0)+(has('furnace')?3:0),mark:tal('h4')?1:0,tgt:0,turn:0,log:kind==='boss'?FOES[keys[0]].intro:'Something moves on the road ahead.'};
   G.C.enemies.forEach(e=>{const m=(kind==='elite'&&asc(1)?1.2:1)*(kind==='fight'&&asc(2)?1.1:1)*(e.boss&&asc(7)?1.2:1);if(m>1){e.hp=e.max=e.shown=Math.round(e.hp*m)}
     if(asc(4))e.str+=1;if(e.boss&&asc(7))e.str+=2;if(kind!=='fight'&&asc(10)){e.block=12;e.str+=1}});
-  G.C.enemies.forEach(e=>{if(tal('w2'))e.str-=1;if(tal('v1'))e.poison=3});
-  {const c=G.C;if(perk('lantern'))c.lanterns++;if(perk('swarmp'))c.moths+=3;if(perk('coat'))c.venom++;if(has('fang'))c.venom++;if(perk('hardened'))c.startBlock+=6;}
+  G.C.enemies.forEach(e=>{if(tal('w2'))e.str-=1;if(has('mask'))e.str-=1;if(tal('v1'))e.poison=3;if(has('tabi'))e.poison=(e.poison||0)+3});
+  {const c=G.C;if(has('daruma'))c.startBlock+=8;if(has('screen'))c.lpow++;if(has('hall'))c.lanterns+=2;if(has('brush'))c.moths+=2;if(has('whet2'))c.kunaiB2=1;if(has('egg')){c.monkeys++;c.counter+=2}if(perk('lantern'))c.lanterns++;if(perk('swarmp'))c.moths+=3;if(perk('coat'))c.venom++;if(has('fang'))c.venom++;if(perk('hardened'))c.startBlock+=6;}
   if(G.run.charm>0){G.C.startBlock+=8;G.run.charm--}
   G.C.intro=1;G.screen='combat';if(tal('t1'))aoe(4);startTurn();
 }
 function startTurn(){const c=C();c.turn++;c.emax=c.emax||3;c.firstHit=0;
   if(has('cocoon'))c.moths++;if(tal('m3'))c.moths++;if(c.grow)c.staff=(c.staff||0)+c.grow;if(c.troop)c.monkeys=(c.monkeys||0)+c.troop;if(has('nimbus'))c.monkeys=(c.monkeys||0)+1;
-  c.atkN=0;c.block=(tal('w4')||tal('g4')?Math.floor(c.block/2):0)+(perk('guarded')?Math.min(c.block,5):0)+c.lanterns*c.lpow+(c.turn===1?(c.startBlock||0):0);
-  c.energy=c.emax+(c.turn===1&&(tal('e3')||tal('t3')||tal('h3')||tal('r3'))?1:0)+(c.turn===1&&perk('well')?1:0);if(c.turn%3===0){if(perk('fury'))c.str++;if(perk('surge'))c.energy++}c.clones=c.clones||0;
+  c.atkN=0;c.block=(tal('w4')||tal('g4')?Math.floor(c.block/2):0)+(perk('guarded')?Math.min(c.block,5):0)+c.lanterns*c.lpow+(c.turn===1?(c.startBlock||0):0)+(has('bell')?3:0);
+  c.energy=c.emax+(c.turn===1&&(tal('e3')||tal('t3')||tal('h3')||tal('r3'))?1:0)+(c.turn===1&&perk('well')?1:0)+(c.turn===1&&has('fan')?1:0);if(c.turn%3===0){if(perk('fury'))c.str++;if(perk('surge'))c.energy++}c.clones=c.clones||0;
   if(tal('s4')&&c.lanterns>=3)alive().forEach(e=>dmgFoe(e,3));if(tal('t4'))alive().forEach(e=>dmgFoe(e,2));
   if(!alive().length)return finishWin();
-  c.dealing=1;c.dealFx=1;draw(5+(c.turn===1&&has('sandals')?2:0)+(c.turn===1&&tal('b2')?1:0)+(tal('w3')?1:0)+(c.nextDraw||0));c.nextDraw=0;
+  c.dealing=1;c.dealFx=1;draw(5+(has('tome')?1:0)+(c.turn===1&&has('sandals')?2:0)+(c.turn===1&&tal('b2')?1:0)+(tal('w3')?1:0)+(c.nextDraw||0));c.nextDraw=0;
   if(c.turn===1&&tal('k1'))addHand('kunai',2);if(c.turn===1&&has('pouch'))addHand('kunai',2);if(c.clones)addHand('kunai',c.clones);if(tal('k4'))addHand('kunai',1);render()}
 const RANGED=['kunai','dart','needle','barrage'],LIGHTNING=['bolt','thunder','chain','tempest','static'];
 function play(i){
@@ -1315,7 +1332,7 @@ function play(i){
   try{const el=document.querySelector(`.hand2 [data-hi="${i}"]`);if(el&&el.getBoundingClientRect)G.fly={html:el.outerHTML,r:el.getBoundingClientRect()}}catch(e){}
   const b0=c.block;G.selCard=null;
   if(d.t==='atk'){c.atkN=(c.atkN||0)+1;c.combo=perk('combo')&&c.atkN%3===0}else c.combo=false;
-  c.energy-=d.c;c.hand.splice(i,1);d.p();c.combo=false;if(d.t==='skl'&&tal('h2'))c.block+=2;if(d.t==='atk'&&perk('bushido'))c.block+=3;if(d.c===0&&perk('veilp'))c.block+=3;(d.ex||d.t==='pow'?c.exhaust:c.discard).push(id);c.log=`You play ${d.n}.`;c.anim=d.t==='atk'?'atk':/block/.test(d.x)?'def':'cast';
+  c.energy-=d.c;c.hand.splice(i,1);d.p();c.combo=false;if(d.t==='skl'&&tal('h2'))c.block+=2;if(d.t==='atk'&&perk('bushido'))c.block+=3;if(d.t==='atk'&&has('tsuba'))c.block+=2;if(d.c===0&&perk('veilp'))c.block+=3;(d.ex||d.t==='pow'?c.exhaust:c.discard).push(id);c.log=`You play ${d.n}.`;c.anim=d.t==='atk'?'atk':/block/.test(d.x)?'def':'cast';
   c.act={kind:c.anim,card:id};if(c.block>b0)c.hblk=c.block-b0;G.lockUntil=Date.now()+(d.t==='atk'?(G.run.cls==='wizard'?380:520):240);
   if(!checkWin())render();
 }
@@ -1324,7 +1341,7 @@ function finishWin(){const c=C();if(!c||c.winning)return;c.winning=1;G.busy=true
 function endTurn(){
   const c=C();if(G.busy)return;
   if(c.monkeys){const per=tal('c2')?4:3,dmg=c.monkeys*per;c.mothFx={n:c.monkeys,monk:1};if(tal('c4')){alive().forEach(e=>dmgFoe(e,dmg));c.log=`${c.monkeys} monkey clones strike every enemy for ${dmg}.`}else{const e=target();if(e){dmgFoe(e,dmg);c.log=`${c.monkeys} monkey clone${c.monkeys>1?'s':''} strike for ${dmg}.`}}}
-  if(c.moths){c.mothFx={n:c.moths+(c.monkeys||0),monk:c.mothFx&&c.mothFx.monk};const per=tal('m2')?3:2,dmg=c.moths*per;if(tal('m4')){alive().forEach(e=>dmgFoe(e,dmg));c.log=`${c.moths} paper moths strike every enemy for ${dmg}.`}else{const e=target();if(e){dmgFoe(e,dmg);c.log=`${c.moths} paper moth${c.moths>1?'s':''} strike for ${dmg}.`}}c.moths--}
+  if(c.moths){c.mothFx={n:c.moths+(c.monkeys||0),monk:c.mothFx&&c.mothFx.monk};const per=(tal('m2')?3:2)+(has('inkstone')?1:0),dmg=c.moths*per;if(tal('m4')){alive().forEach(e=>dmgFoe(e,dmg));c.log=`${c.moths} paper moths strike every enemy for ${dmg}.`}else{const e=target();if(e){dmgFoe(e,dmg);c.log=`${c.moths} paper moth${c.moths>1?'s':''} strike for ${dmg}.`}}c.moths--}
   c.discard.push(...c.hand);c.hand=[];
   if(checkWin())return;
   G.busy=true;const mf=!!c.mothFx;render();setTimeout(enemyTurn,mf?950:420);
@@ -1358,7 +1375,7 @@ function winCombat(){G.pileOpen=null;G.statusOpen=0;
     const gold=90+R(21);r.gold+=gold;
     G.reward={boss:1,gold,relics:bossRelics(),relic:null,cards:rareChoices(3),card:null,item:randItem()};G.C=null;G.screen='reward';return render();
   }
-  let gold=c.kind==='elite'?30+R(16):12+R(10);if(perk('plunder'))gold=Math.round(gold*1.5);r.gold+=gold;if(perk('medic'))heal(5);
+  let gold=c.kind==='elite'?30+R(16):12+R(10);if(perk('plunder'))gold=Math.round(gold*1.5);if(has('koi'))gold+=12;r.gold+=gold;if(perk('medic'))heal(5);
   let relic=null,perks=null;if(c.kind==='elite'){perks=perkChoices(3);if(Math.random()<.5){relic=randRelic();relic&&gainRelic(relic)}}
   G.reward={gold,relic,perks,perk:null,cards:cardChoices(3),item:c.kind==='elite'||Math.random()<.45?randItem():null};G.C=null;G.screen='reward';render();
 }
@@ -1992,7 +2009,7 @@ function render(){
     <div><button class="btn" data-a="skip" ${lock?'disabled':''}>Skip the card</button></div>`})()}</div>`;
   }
   else if(G.screen==='rest'){
-    const amt=Math.round(r.maxHp*restPct());
+    const amt=restAmt();
     h=`<div class="stack evscr">${campStage()}${hdr(iconSVG("rest",30),"Campfire","Embers and quiet","")}
     <div class="paths"><button class="path rest" data-a="rest"><span class="sig">休</span><span><h3>Rest</h3><span class="muted" style="font-size:13px">Heal ${amt} HP.</span></span></button>
     <button class="path rest" data-a="trim" ${r.deck.length<=5?'disabled':''}><span class="sig">削</span><span><h3>Trim your deck</h3><span class="muted" style="font-size:13px">Remove one card for good.</span></span></button></div></div>`;
@@ -2125,7 +2142,7 @@ document.addEventListener('click',e=>{
     case'skip':if(G.reward&&G.reward.boss){G.reward.card='skip';render()}else nextFloor();break;
     case'bossRelic':if(!G.reward.relic){G.reward.relic=v;gainRelic(v)}render();break;
     case'nextAct':advanceAct();break;
-    case'rest':heal(Math.round(r.maxHp*restPct()));nextFloor();break;
+    case'rest':heal(restAmt());nextFloor();break;
     case'trim':G.removeFrom='rest';G.screen='remove';render();break;
     case'shopTrim':G.removeFrom='shop';G.screen='remove';render();break;
     case'boon':{const b=G.boon;if(!b||b.pick)break;b.pick=v;b.say=pick(MIKO.bye);sfx('chime');const res=BOONS[v].f();if(res===null){render();break}b.result=res;render();break}
