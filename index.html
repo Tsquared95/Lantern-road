@@ -182,6 +182,17 @@ p{margin:0}
 .tp{font-size:11px;color:var(--dim);white-space:nowrap}
 .pickbar{position:sticky;bottom:0;display:flex;gap:8px;background:var(--ink);padding-block:8px}
 .pickbar .main{flex:1}
+.ascrow{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #ffffff1f;border-radius:10px;background:#14151d}
+.ascrow.on{border-color:#c0392b;background:linear-gradient(90deg,#2a1214,#14151d)}
+.ascrow .ab{flex:0 0 34px;height:34px;border-radius:8px;border:1px solid #ffffff2a;background:#1d1f2a;color:var(--washi);font-size:20px;line-height:1;cursor:pointer}
+.ascrow .ab:disabled{opacity:.3;cursor:default}
+.ascrow .at{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ascrow .at b{font-size:14px;display:flex;justify-content:space-between;gap:6px}
+.ascrow.on .at b{color:#ff8a7a}
+.ascrow .at b i{font-style:normal;font-weight:400;font-size:11px;color:var(--muted,#9a9aa8)}
+.ascrow .at small{font-size:12px;color:var(--muted,#9a9aa8);line-height:1.3}
+.ascb{color:#ff8a7a}
+.ember.ascup span{color:#ff8a7a}
 .relic.perk{color:var(--jade);border-color:#2f5a4d}
 .kit{display:flex;flex-direction:column;gap:6px;text-align:left;background:none;border:0;padding:0}
 .kitlist{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:13px}.kitlist p{margin:0}
@@ -838,7 +849,21 @@ const TALENTS={
 const TCOST=[1,2,3,5];
 let META={pts:0,t:{samurai:[],wizard:[],ninja:[]}};
 try{const m=JSON.parse(ls('lr-meta')||'null');if(m&&m.t)META=Object.assign(META,m)}catch(e){}
+META.asc=Object.assign({samurai:0,wizard:0,ninja:0},META.asc||{});
 const saveMeta=()=>ls('lr-meta',JSON.stringify(META));
+const ASC_MAX=10,ASC=[null,
+ 'Elites have 20% more HP.',
+ 'Normal enemies have 10% more HP.',
+ 'Start with 15 gold instead of 40.',
+ 'Enemies start every fight with +1 strength.',
+ 'Campfires heal 20% of max HP instead of 30%.',
+ 'Shop prices are 20% higher.',
+ 'Bosses have 20% more HP and +2 strength.',
+ 'Start with 10% less max HP.',
+ 'Between acts you recover only half your missing HP.',
+ 'Elites and bosses start every fight with 12 block and +1 more strength.'];
+const ascLv=()=>G.run&&G.run.asc||0,asc=n=>ascLv()>=n;
+const restPct=()=>asc(5)?.2:.3;
 const tal=k=>!!(G.run&&META.t[G.run.cls]&&META.t[G.run.cls].includes(k));
 const CLS=()=>CLASSES[(G.run&&G.run.cls)||'samurai'];
 const CARDS_END=0;
@@ -935,7 +960,7 @@ function merchantSVG(){return `<svg viewBox="0 0 300 150" class="merch" role="im
 </svg>`}
 function perkChoices(n){return shuffle(Object.keys(PERKS).filter(k=>!perk(k)&&(!PERKS[k].cls||PERKS[k].cls===G.run.cls))).slice(0,n)}
 function gainPerk(k){if(!G.run.perks)G.run.perks=[];G.run.perks.push(k);PERKS[k].on&&PERKS[k].on()}
-const disc=()=>(perk('bargain')?.75:1)*(G.run&&G.run.favorAct===G.run.act?.6:1);
+const disc=()=>(asc(6)?1.2:1)*(perk('bargain')?.75:1)*(G.run&&G.run.favorAct===G.run.act?.6:1);
 const ITEMS={
  tea:{n:'Healing tea',kind:'gourd',col:'#62b89d',any:1,x:'Heal 20 HP.',f(){heal(20)}},
  phoenix:{n:'Phoenix feather',kind:'feather',col:'#e5743f',any:1,rare:1,x:'Heal 40 HP.',f(){heal(40)}},
@@ -1131,8 +1156,8 @@ function dmgFoe(e,d){if(e.hp<=0)return;const a=Math.min(e.block,d);e.block-=a;e.
 function hit(base){const e=target(),c=C();if(!e)return;let d=base+bonus()+(tal('b1')?1:0);if(tal('b4')&&!c.firstHit)d+=5;c.firstHit=1;if(c.combo)d+=5;if(perk('exec')&&e.hp<e.max/2)d+=4;if(perk('first')&&!c.fsUsed){d+=6;c.fsUsed=1}if(c.mark){d*=3;c.mark=0}dmgFoe(e,d);if(c.venom)poison(e,c.venom)}
 function draw(n){const c=C();for(let i=0;i<n;i++){if(!c.draw.length){if(!c.discard.length)break;c.draw=shuffle(c.discard);c.discard=[]}if(c.hand.length>=10)break;c.hand.push(c.draw.pop())}}
 
-function newRun(cls,build){const k=CLASSES[cls];G.run={cls,build,hp:k.hp,maxHp:k.hp,gold:40,deck:[...k.start,...k.builds[build].sig],relics:[],perks:[],items:['tea'],act:1,floor:0,elites:0,bosses:0,bossPick:BOSSES.map(p=>pick(p)),charm:0};if(tal('s3')){G.run.maxHp+=8;G.run.hp+=8}genMap();G.C=null;startBoon()}
-function advanceAct(){const r=G.run;r.act++;r.floor=0;r.hp=r.maxHp;G.reward=null;genMap();startBoon()}
+function newRun(cls,build,lv){const k=CLASSES[cls];lv=Math.max(0,Math.min(lv||0,META.asc[cls]||0,ASC_MAX));G.run={cls,build,asc:lv,hp:k.hp,maxHp:k.hp,gold:lv>=3?15:40,deck:[...k.start,...k.builds[build].sig],relics:[],perks:[],items:['tea'],act:1,floor:0,elites:0,bosses:0,bossPick:BOSSES.map(p=>pick(p)),charm:0};if(tal('s3')){G.run.maxHp+=8;G.run.hp+=8}if(lv>=8){G.run.maxHp=Math.round(G.run.maxHp*.9);G.run.hp=G.run.maxHp}genMap();G.C=null;startBoon()}
+function advanceAct(){const r=G.run;r.act++;r.floor=0;r.hp=asc(9)?r.hp+Math.ceil((r.maxHp-r.hp)/2):r.maxHp;G.reward=null;genMap();startBoon()}
 function genChoices(f){
   if(f===FPA)return['boss'];if(f===1)return['fight'];if(f===FPA-1)return['rest','shop'];
   const w=[['fight',5],['elite',f>=3?2:0],['rest',f>=3?2:0],['shrine',2],['shop',f>=2?1.5:0]];
@@ -1220,6 +1245,8 @@ function enter(t){
 function startCombat(kind){
   const a=G.run.act,f=G.run.floor,keys=kind==='boss'?[actBoss(a)]:kind==='elite'?(a===3?pick([['oni'],['tengu'],['tengu','wisp'],['oni','tanuki']]):[pick(['oni','tengu'])]):fightGroup(f);
   G.C={kind,enemies:keys.map(k=>mkFoe(k,Math.round(diff()*.8))),draw:shuffle([...G.run.deck]),hand:[],discard:[],exhaust:[],energy:3,emax:3+(has('core')?1:0),block:0,lanterns:(has('wick')?1:0)+(has('flame')?1:0)+(tal('s1')?1:0),lpow:2+(has('flame')?2:0)+(tal('s2')?1:0),moths:(has('jar')?3:0)+(tal('m1')?2:0),str:(has('blade')?2:0)+(tal('b3')?1:0),venom:0,clones:0,kunaiB:0,nextDraw:0,startBlock:(tal('w1')?6:0)+(tal('h1')?6:0),mark:tal('h4')?1:0,tgt:0,turn:0,log:kind==='boss'?FOES[keys[0]].intro:'Something moves on the road ahead.'};
+  G.C.enemies.forEach(e=>{const m=(kind==='elite'&&asc(1)?1.2:1)*(kind==='fight'&&asc(2)?1.1:1)*(e.boss&&asc(7)?1.2:1);if(m>1){e.hp=e.max=e.shown=Math.round(e.hp*m)}
+    if(asc(4))e.str+=1;if(e.boss&&asc(7))e.str+=2;if(kind!=='fight'&&asc(10)){e.block=12;e.str+=1}});
   G.C.enemies.forEach(e=>{if(tal('w2'))e.str-=1;if(tal('v1'))e.poison=3});
   {const c=G.C;if(perk('lantern'))c.lanterns++;if(perk('swarmp'))c.moths+=3;if(perk('coat'))c.venom++;if(perk('hardened'))c.startBlock+=6;}
   if(G.run.charm>0){G.C.startBlock+=8;G.run.charm--}
@@ -1285,7 +1312,7 @@ function winCombat(){G.pileOpen=null;G.statusOpen=0;
   let relic=null,perks=null;if(c.kind==='elite'){perks=perkChoices(3);if(Math.random()<.5){relic=randRelic();relic&&gainRelic(relic)}}
   G.reward={gold,relic,perks,perk:null,cards:cardChoices(3),item:c.kind==='elite'||Math.random()<.45?randItem():null};G.C=null;G.screen='reward';render();
 }
-function endRun(won){const f=won?FPA*3+1:diff(),r=G.run;r.earned=diff()+3*(r.elites||0)+8*(r.bosses||0)+(won?10:0);META.pts+=r.earned;saveMeta();if(f>G.best){G.best=f;ls('lr-best',String(f))}G.screen=won?'win':'over';G.C=null;ls('lr-run',null);render()}
+function endRun(won){const f=won?FPA*3+1:diff(),r=G.run,lv=r.asc||0;r.earned=Math.round((diff()+3*(r.elites||0)+8*(r.bosses||0)+(won?10:0))*(1+lv*.1));if(won&&lv>=(META.asc[r.cls]||0)&&lv<ASC_MAX){META.asc[r.cls]=lv+1;r.ascUp=lv+1}META.pts+=r.earned;saveMeta();if(f>G.best){G.best=f;ls('lr-best',String(f))}G.screen=won?'win':'over';G.C=null;ls('lr-run',null);render()}
 
 /* ---------- rendering ---------- */
 const $=s=>document.querySelector(s);
@@ -1824,7 +1851,7 @@ function render(){
     const sel=G.tsel,selT=sel&&Object.entries(TALENTS[k]).flatMap(([b,l])=>l.map((t,i)=>({b,i,t}))).find(o=>o.t[0]===sel);
     const canBuy=o=>!mine.includes(o.t[0])&&(o.i===0||mine.includes(TALENTS[k][o.b][o.i-1][0]))&&META.pts>=TCOST[o.i];
     h=`<div class="stack"><div class="row" style="justify-content:space-between">${hdr("魂","Talent tree",`Spirit embers <span style="color:var(--gold)">${META.pts}</span>`,"")}<button class="btn" data-a="title">Done</button></div>
-    <p class="muted" style="font-size:13px">Earn embers every run: 1 per floor, 3 per elite, 8 per act boss, and 10 for clearing all three acts. Talents last forever for that class.</p>
+    <p class="muted" style="font-size:13px">Earn embers every run: 1 per floor, 3 per elite, 8 per act boss, and 10 for clearing all three acts. Ascension adds 10% per level. Talents last forever for that class.</p>
     <div class="tabs" role="tablist">${Object.entries(CLASSES).map(([ck,c])=>`<button class="tab ${ck===k?'on':''}" role="tab" aria-selected="${ck===k}" data-a="tcls" data-v="${ck}">${c.n}</button>`).join('')}</div>
     <div class="tree">${Object.entries(x.builds).map(([bk,b])=>`<div class="branch"><p class="bname">${b.n}</p>${TALENTS[k][bk].map((t,i)=>{const own=mine.includes(t[0]),open=i===0||mine.includes(TALENTS[k][bk][i-1][0]);return `<button class="tnode ${own?'own':open?'open':'lock'} ${sel===t[0]?'sel':''}" data-a="tsel" data-v="${t[0]}"><span class="tn">${t[1]}</span><span class="tc">${own?'Learned':TCOST[i]+' ✦'}</span></button>`}).join('<i class="tlink"></i>')}</div>`).join('')}</div>
     <div class="mapinfo">${selT?`<p class="label">${x.builds[selT.b].n} · Tier ${selT.i+1}</p><h3>${selT.t[1]}</h3><p class="muted" style="font-size:13px">${selT.t[2]}</p>${mine.includes(selT.t[0])?'<p class="help">Learned.</p>':`<button class="btn main" data-a="learn" data-v="${selT.t[0]}" ${canBuy(selT)?'':'disabled'}>${canBuy(selT)?`Learn for ${TCOST[selT.i]} embers`:selT.i>0&&!mine.includes(TALENTS[k][selT.b][selT.i-1][0])?'Learn the talent above first':`Needs ${TCOST[selT.i]} embers`}</button>`}`:'<p class="muted">Tap a talent to see what it does.</p>'}
@@ -1834,7 +1861,8 @@ function render(){
     const k=G.pickCls||'samurai',x=CLASSES[k],bk=G.pickBuild&&x.builds[G.pickBuild]?G.pickBuild:Object.keys(x.builds)[0],B=x.builds[bk];
     h=`<div class="stack pick">${hdr("旅","New run","Choose your traveler","")}
     <div class="pl"><div class="clsrow" role="tablist">${Object.entries(CLASSES).map(([ck,c])=>`<button class="ctab ${ck===k?'on':''}" role="tab" aria-selected="${ck===k}" data-a="pcls" data-v="${ck}"><span class="pic"><svg viewBox="0 -8 100 116" aria-hidden="true">${HEROSVG[ck]()}</svg></span><b>${c.n}</b><small>HP ${c.hp}</small></button>`).join('')}</div>
-    <p class="muted" style="font-size:13px"><b style="color:var(--washi)">${x.hero}</b>, ${x.sub.toLowerCase()}. ${x.x}</p></div>
+    <p class="muted" style="font-size:13px"><b style="color:var(--washi)">${x.hero}</b>, ${x.sub.toLowerCase()}. ${x.x}</p>
+    ${(()=>{const top=META.asc[k]||0,lv=Math.min(G.pickAsc??top,top);return `<div class="ascrow ${lv?'on':''}"><button class="ab" data-a="ascSel" data-v="-1" ${lv<=0?'disabled':''} aria-label="Lower ascension">‹</button><span class="at"><b>${lv?`Ascension ${lv}`:'Ascension off'}<i>${top?`unlocked ${top}/${ASC_MAX}`:'locked'}</i></b><small>${lv?`${ASC[lv]}${lv>1?` Plus ${lv-1} earlier rule${lv>2?'s':''}.`:''} Embers +${lv*10}%.`:top?'Tap › to raise the difficulty.':`Clear all three acts with ${x.n} to unlock Ascension 1.`}</small></span><button class="ab" data-a="ascSel" data-v="1" ${lv>=top?'disabled':''} aria-label="Raise ascension">›</button></div>`})()}</div>
     <div class="pr"><p class="label">Build</p>
     <div class="blist" role="radiogroup">${Object.entries(x.builds).map(([id,b])=>{const tl=TALENTS[k][id],got=tl.filter(t=>META.t[k].includes(t[0])).length;return `<button class="brow ${id===bk?'on':''}" role="radio" aria-checked="${id===bk}" data-a="pbuild" data-v="${id}"><span class="rad"></span><span class="bt"><b>${b.n}</b><small>${b.x}</small><span class="sigs">${b.sig.map(c=>`<i>${CARDS[c].n}</i>`).join('')}</span></span><span class="tp" title="Talents learned">${got}/4</span></button>`}).join('')}</div>
     <div class="pickbar"><button class="btn" data-a="title">Back</button><button class="btn main" data-a="startrun">Start · ${B.n}</button></div></div></div>`;
@@ -1843,7 +1871,7 @@ function render(){
     const act=ACTS[r.act-1];
     const acts=ACTS.map((x,i)=>`<span class="actpip ${i+1<r.act?'done':i+1===r.act?'now':''}">${ROMAN[i]} · ${x.n}</span>`).join('');
     h=`<div class="stack mapscr"><div class="mside"><div class="actrow">${acts}</div>
-    ${hdr(["壱","弐","参"][r.act-1],`Act ${ROMAN[r.act-1]} · Floor ${r.floor} of ${r.map?r.map.rows.length:FPA}`,act.n,act.x,"act")}
+    ${hdr(["壱","弐","参"][r.act-1],`Act ${ROMAN[r.act-1]} · Floor ${r.floor} of ${r.map?r.map.rows.length:FPA}${r.asc?` · <span class="ascb">Ascension ${r.asc}</span>`:''}`,act.n,act.x,"act")}
     ${mapInfo()}
     ${(r.perks||[]).length||r.relics.length?`<button class="kit" data-a="deck"><span class="label">Perks & relics · tap for details</span><span class="relics">${(r.perks||[]).map(k=>`<span class="relic perk">${PERKS[k].n}</span>`).join('')}${r.relics.map(k=>`<span class="relic">${RELICS[k].n}</span>`).join('')}</span></button>`:''}</div>${mapSVG()}</div>`;
   }
@@ -1868,7 +1896,7 @@ function render(){
   else if(G.screen==='reward'&&G.reward.boss){
     const w=G.reward,nx=ROMAN[r.act];
     h=`<div class="stack">${hdr("勝",`Act ${ROMAN[r.act-1]} cleared`,`${ACTS[r.act-1].n} is quiet again`,"","win")}${itemRewardHTML()}
-    <p>You gain <b style="color:var(--gold)">${w.gold} gold</b>. Before Act ${nx}, you rest and recover to full HP.</p>
+    <p>You gain <b style="color:var(--gold)">${w.gold} gold</b>. Before Act ${nx}, you rest and recover ${asc(9)?'half your missing HP':'to full HP'}.</p>
     ${w.relics.length?`<p class="label">Boss relic · choose one</p><div class="paths">${w.relics.map(k=>`<button class="path shop ${w.relic===k?'chosen':''}" data-a="bossRelic" data-v="${k}" ${w.relic?'disabled':''}><span class="sig">宝</span><span><h3>${RELICS[k].n}${w.relic===k?' · taken':''}</h3><span class="muted" style="font-size:13px">${RELICS[k].x}</span></span></button>`).join('')}</div>`:''}
     <p class="label">Rare card · ${w.card?(w.card==='skip'?'skipped':'added to your deck'):'choose one'}</p>
     ${w.card?'':`<div class="cards">${w.cards.map(k=>cardHTML(k,`data-a="take" data-v="${k}"`)).join('')}</div><div><button class="btn" data-a="skip">Skip the card</button></div>`}
@@ -1883,7 +1911,7 @@ function render(){
     <div><button class="btn" data-a="skip" ${lock?'disabled':''}>Skip the card</button></div>`})()}</div>`;
   }
   else if(G.screen==='rest'){
-    const amt=Math.round(r.maxHp*.3);
+    const amt=Math.round(r.maxHp*restPct());
     h=`<div class="stack evscr">${campStage()}${hdr(iconSVG("rest",30),"Campfire","Embers and quiet","")}
     <div class="paths"><button class="path rest" data-a="rest"><span class="sig">休</span><span><h3>Rest</h3><span class="muted" style="font-size:13px">Heal ${amt} HP.</span></span></button>
     <button class="path rest" data-a="trim" ${r.deck.length<=5?'disabled':''}><span class="sig">削</span><span><h3>Trim your deck</h3><span class="muted" style="font-size:13px">Remove one card for good.</span></span></button></div></div>`;
@@ -1928,10 +1956,10 @@ function render(){
     const won=G.screen==='win';
     h=`<div class="endscr ${won?'won':'lost'}">
     <div class="keyart endart">${battleBG(won?3:r.act,won?'':'boss')}<span class="endseal">${won?'勝':'終'}</span></div>
-    <div class="endbody"><p class="label">${won?'Victory':'Run over'}</p><h1>${won?'The lanterns burn at the summit':'Your lantern goes dark'}</h1>
+    <div class="endbody"><p class="label">${won?'Victory':'Run over'}${r.asc?` · Ascension ${r.asc}`:''}</p><h1>${won?'The lanterns burn at the summit':'Your lantern goes dark'}</h1>
     <p class="muted">${won?`All three acts cleared. ${FOES[actBoss(3)].n.split(',')[0]} falls, and the mountain road is safe for another night.`:`${CLASSES[r.cls].hero} fell in Act ${ROMAN[r.act-1]}, floor ${r.floor}.`}</p>
     <div class="stats"><div><b>${diff()}</b><small>Floors</small></div><div><b>${r.elites||0}</b><small>Elites</small></div><div><b>${r.bosses||0}</b><small>Bosses</small></div><div><b>${r.deck.length}</b><small>Cards</small></div></div>
-    <div class="ember"><span>✦</span><div><b>+${r.earned||0} spirit embers</b><small>You have ${META.pts} to spend on talents.</small></div></div>
+    ${r.ascUp?`<div class="ember ascup"><span>昇</span><div><b>Ascension ${r.ascUp} unlocked</b><small>${CLASSES[r.cls].n} · ${ASC[r.ascUp]}</small></div></div>`:''}<div class="ember"><span>✦</span><div><b>+${r.earned||0} spirit embers</b><small>${r.asc?`Includes +${r.asc*10}% for Ascension ${r.asc}. `:''}You have ${META.pts} to spend on talents.</small></div></div>
     <nav class="mlist"><button class="mi pri" data-a="new"><span class="mk" aria-hidden="true"></span><span class="ml"><b>Walk again</b><small>Start a new run</small></span></button><button class="mi" data-a="talents"><span class="mk" aria-hidden="true"></span><span class="ml"><b>Talents</b><small>Spend your embers</small></span></button><button class="mi" data-a="title"><span class="mk" aria-hidden="true"></span><span class="ml"><b>Main menu</b></span></button></nav></div></div>`;
   }
   s.classList&&s.classList.toggle('fit',G.screen==='combat');s.innerHTML=h;renderDeck();if(G.screen==='combat')layoutHand();
@@ -1982,9 +2010,10 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const a=b.dataset.a,v=b.dataset.v,r=G.run;
   switch(a){
     case'new':G.screen='pick';G.deckOpen=false;render();break;
-    case'pcls':G.pickCls=v;G.pickBuild=null;render();break;
+    case'pcls':G.pickCls=v;G.pickBuild=null;G.pickAsc=null;render();break;
+    case'ascSel':{const k=G.pickCls||'samurai',top=META.asc[k]||0,cur=Math.min(G.pickAsc??top,top);G.pickAsc=Math.max(0,Math.min(top,cur+(+v)));render();break}
     case'pbuild':G.pickBuild=v;render();break;
-    case'startrun':{const k=G.pickCls||'samurai',b=G.pickBuild&&BUILDS[k][G.pickBuild]?G.pickBuild:Object.keys(BUILDS[k])[0];newRun(k,b);break}
+    case'startrun':{const k=G.pickCls||'samurai',b=G.pickBuild&&BUILDS[k][G.pickBuild]?G.pickBuild:Object.keys(BUILDS[k])[0];{const top=META.asc[k]||0;newRun(k,b,Math.min(G.pickAsc??top,top))}break}
     case'sfx':SFX.on=!SFX.on;ls('lr-sfx',SFX.on?'on':'off');if(SFX.on){audioUnlock();setTimeout(()=>sfx('slice'),30)}render();break;
     case'fullscreen':{const d=document.documentElement,on=document.fullscreenElement||document.webkitFullscreenElement;
       try{if(on){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}else{const p=(d.requestFullscreen||d.webkitRequestFullscreen).call(d);if(p&&p.then)p.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{})}}catch(e){}
@@ -2012,7 +2041,7 @@ document.addEventListener('click',e=>{
     case'skip':if(G.reward&&G.reward.boss){G.reward.card='skip';render()}else nextFloor();break;
     case'bossRelic':if(!G.reward.relic){G.reward.relic=v;gainRelic(v)}render();break;
     case'nextAct':advanceAct();break;
-    case'rest':heal(Math.round(r.maxHp*.3));nextFloor();break;
+    case'rest':heal(Math.round(r.maxHp*restPct()));nextFloor();break;
     case'trim':G.removeFrom='rest';G.screen='remove';render();break;
     case'shopTrim':G.removeFrom='shop';G.screen='remove';render();break;
     case'boon':{const b=G.boon;if(!b||b.pick)break;b.pick=v;b.say=pick(MIKO.bye);sfx('chime');const res=BOONS[v].f();if(res===null){render();break}b.result=res;render();break}
